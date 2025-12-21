@@ -32,6 +32,7 @@
     "@ng-icons/core": "^33.0.0",
     "@ng-icons/lucide": "^33.0.0",
     "@spartan-ng/brain": "^0.0.1-alpha.584",
+    "ngx-extended-pdf-viewer": "^25.6.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

@@ -28,6 +28,7 @@ export interface DocumentFile {
  */
 export interface DocumentMeta {
   accessionNumber: string;
+  summary?: string;
   formType?: string;
   fileNumber?: string;
   filmNumber?: string;
@@ -38,6 +39,21 @@ export interface DocumentMeta {
   filerName?: string;
   primaryDocument?: string;
   primaryDocumentDescription?: string;
+  documents?: DocumentFile[];
+  filingHeader?: FilingHeader;
+  hasXbrl?: boolean;
+}
+
+/**
+ * Filing header information from document metadata.
+ */
+export interface FilingHeader {
+  accessionNumber?: string;
+  conformedSubmissionType?: string;
+  publicDocumentCount?: number;
+  filedAsOfDate?: string;
+  acceptanceDateTime?: string;
+  itemInformation?: string[];
 }
 
 /**
