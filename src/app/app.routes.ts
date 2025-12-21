@@ -21,6 +21,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/document/document-viewer.component').then((m) => m.DocumentViewerComponent),
   },
+  {
+    path: 'kv-test',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/kv-test/kv-test.component').then((m) => m.KvTestComponent),
+  },
   // Wildcard redirect to auth for any unknown routes
   {
     path: '**',

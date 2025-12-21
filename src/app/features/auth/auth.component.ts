@@ -23,7 +23,7 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       <div class="auth-container">
         <!-- Loading State -->
         @if (auth.isLoading$ | async) {
-          <div class="loading-card">
+          <div class="card">
             <div class="loading-spinner"></div>
             <p class="loading-text">Authenticating...</p>
           </div>
@@ -31,14 +31,12 @@ import { ProfileComponent } from '../../components/auth/profile.component';
 
         <!-- Error State -->
         @if (auth.error$ | async; as error) {
-          <div class="error-card">
-            <div class="error-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
-              </svg>
-            </div>
+          <div class="card error-card">
+            <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
             <h2 class="error-title">Authentication Error</h2>
             <p class="error-message">{{ error.message }}</p>
             <app-login-button />
@@ -47,93 +45,50 @@ import { ProfileComponent } from '../../components/auth/profile.component';
 
         <!-- Main Content -->
         @if (!(auth.isLoading$ | async) && !(auth.error$ | async)) {
-          <div class="main-card">
-            <!-- Logo -->
-            <div class="logo-section">
-              <img
-                src="https://cdn.auth0.com/quantum-assets/dist/latest/logos/auth0/auth0-lockup-en-ondark.png"
-                alt="Auth0"
-                class="auth0-logo"
-              />
-            </div>
-
-            <h1 class="title">
-              @if (auth.isAuthenticated$ | async) {
-                Welcome Back!
-              } @else {
-                Welcome to Looko2
-              }
-            </h1>
-
+          @if (auth.isAuthenticated$ | async) {
             <!-- Authenticated State -->
-            @if (auth.isAuthenticated$ | async) {
-              <div class="authenticated-section">
-                <div class="success-badge">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
+            <div class="card">
+              <div class="success-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Authenticated
+              </div>
+              
+              <app-profile />
+              
+              <div class="button-group">
+                <a href="/" class="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="13 17 18 12 13 7"/>
+                    <polyline points="6 17 11 12 6 7"/>
                   </svg>
-                  <span>Successfully authenticated</span>
-                </div>
-
-                <div class="profile-section">
-                  <h2 class="section-title">Your Profile</h2>
-                  <app-profile />
-                </div>
-
-                <div class="actions">
-                  <app-logout-button />
-                  <a href="/" class="secondary-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                      <polyline points="9 22 9 12 15 12 15 22"/>
-                    </svg>
-                    Go to App
-                  </a>
-                </div>
+                  Continue to App
+                </a>
+                <app-logout-button />
               </div>
-            } @else {
-              <!-- Unauthenticated State -->
-              <div class="unauthenticated-section">
-                <p class="description">
-                  Sign in to access your SEC filings and documents securely.
-                </p>
-
-                <div class="features">
-                  <div class="feature">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                    <span>Secure Authentication</span>
-                  </div>
-                  <div class="feature">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                      <polyline points="10 9 9 9 8 9"/>
-                    </svg>
-                    <span>Access SEC Filings</span>
-                  </div>
-                  <div class="feature">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    <span>Real-time Updates</span>
-                  </div>
-                </div>
-
-                <app-login-button />
-
-                <p class="terms">
-                  By signing in, you agree to our Terms of Service and Privacy Policy
-                </p>
+            </div>
+          } @else {
+            <!-- Unauthenticated State -->
+            <div class="card">
+              <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
               </div>
-            }
-          </div>
+              
+              <h1 class="title">Looko2</h1>
+              <p class="subtitle">SEC Filing Viewer</p>
+              
+              <app-login-button />
+              
+              <p class="hint">Sign in to continue</p>
+            </div>
+          }
         }
       </div>
     </div>
@@ -146,9 +101,11 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       align-items: center;
       position: relative;
       overflow: hidden;
-      background: #0a0b0e;
+      background: #1e1e1e;
+      padding-bottom: 28px;
     }
 
+    /* Animated Background */
     .background-effects {
       position: absolute;
       inset: 0;
@@ -159,109 +116,115 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     .gradient-orb {
       position: absolute;
       border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.4;
-      animation: float 20s infinite ease-in-out;
+      filter: blur(100px);
+      opacity: 0.25;
+      animation: float 25s infinite ease-in-out;
     }
 
     .orb-1 {
       width: 600px;
       height: 600px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      top: -200px;
+      background: #0e639c;
+      top: -250px;
       left: -200px;
-      animation-delay: 0s;
     }
 
     .orb-2 {
       width: 500px;
       height: 500px;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      bottom: -150px;
+      background: #646695;
+      bottom: -200px;
       right: -150px;
-      animation-delay: -7s;
+      animation-delay: -10s;
     }
 
     .orb-3 {
-      width: 400px;
-      height: 400px;
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      animation-delay: -14s;
+      width: 350px;
+      height: 350px;
+      background: #4ec9b0;
+      top: 60%;
+      left: 20%;
+      animation-delay: -18s;
     }
 
     @keyframes float {
       0%, 100% { transform: translate(0, 0) scale(1); }
-      25% { transform: translate(50px, 50px) scale(1.1); }
-      50% { transform: translate(-30px, 80px) scale(0.95); }
-      75% { transform: translate(40px, -40px) scale(1.05); }
-    }
-
-    .orb-3 {
-      @keyframes float {
-        0%, 100% { transform: translate(-50%, -50%) scale(1); }
-        25% { transform: translate(-45%, -55%) scale(1.1); }
-        50% { transform: translate(-55%, -45%) scale(0.95); }
-        75% { transform: translate(-48%, -52%) scale(1.05); }
-      }
+      33% { transform: translate(40px, -40px) scale(1.05); }
+      66% { transform: translate(-30px, 50px) scale(0.95); }
     }
 
     .grid-overlay {
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 50px 50px;
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
 
+    /* Card */
     .auth-container {
       position: relative;
       z-index: 10;
       width: 100%;
-      max-width: 480px;
+      max-width: 340px;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #252526;
+      border: 1px solid #3c3c3c;
+      border-radius: 6px;
       padding: 2rem;
-    }
-
-    .loading-card,
-    .error-card,
-    .main-card {
-      background: rgba(26, 30, 39, 0.85);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      padding: 3rem 2.5rem;
-      animation: slideUp 0.6s ease-out;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .loading-card {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1.5rem;
+      gap: 1.25rem;
+      animation: fadeIn 0.3s ease-out;
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo */
+    .logo {
+      color: #0e639c;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Typography */
+    .title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #cccccc;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #808080;
+      margin: 0;
+      margin-top: -0.5rem;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: #6e6e6e;
+      margin: 0;
+      margin-top: 0.5rem;
+    }
+
+    /* Loading */
     .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(102, 126, 234, 0.2);
-      border-top-color: #667eea;
+      width: 32px;
+      height: 32px;
+      border: 2px solid #3c3c3c;
+      border-top-color: #0e639c;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -269,196 +232,90 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     }
 
     .loading-text {
-      font-size: 1.2rem;
-      color: #a0aec0;
+      font-size: 0.85rem;
+      color: #808080;
       margin: 0;
     }
 
+    /* Error */
     .error-card {
-      text-align: center;
+      border-color: #5a1d1d;
     }
 
     .error-icon {
-      color: #f56565;
-      margin-bottom: 1rem;
+      color: #f14c4c;
     }
 
     .error-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #f7fafc;
-      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #cccccc;
+      margin: 0;
     }
 
     .error-message {
-      color: #a0aec0;
-      margin: 0 0 2rem 0;
-    }
-
-    .logo-section {
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .auth0-logo {
-      width: 140px;
-      opacity: 0.9;
-      transition: opacity 0.3s ease;
-    }
-
-    .auth0-logo:hover {
-      opacity: 1;
-    }
-
-    .title {
-      font-size: 2.25rem;
-      font-weight: 800;
-      text-align: center;
-      color: #f7fafc;
-      margin: 0 0 2rem 0;
-      letter-spacing: -0.02em;
-    }
-
-    .authenticated-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    .success-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.25rem;
-      background: rgba(104, 211, 145, 0.15);
-      border: 1px solid rgba(104, 211, 145, 0.3);
-      border-radius: 30px;
-      color: #68d391;
-      font-weight: 600;
-      font-size: 0.95rem;
-      animation: pulse 2s infinite ease-in-out;
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(104, 211, 145, 0.2); }
-      50% { box-shadow: 0 0 0 10px rgba(104, 211, 145, 0); }
-    }
-
-    .profile-section {
-      width: 100%;
-      text-align: center;
-    }
-
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #a0aec0;
-      margin: 0 0 1rem 0;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .actions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      width: 100%;
-    }
-
-    .secondary-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #a0aec0;
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    .secondary-button:hover {
-      color: #f7fafc;
-      border-color: rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .unauthenticated-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    .description {
-      font-size: 1.1rem;
-      color: #a0aec0;
-      text-align: center;
-      margin: 0;
-      line-height: 1.6;
-    }
-
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 100%;
-    }
-
-    .feature {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.25rem;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      color: #cbd5e0;
-      font-size: 0.95rem;
-      transition: all 0.3s ease;
-    }
-
-    .feature:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(102, 126, 234, 0.3);
-      transform: translateX(5px);
-    }
-
-    .feature svg {
-      color: #667eea;
-      flex-shrink: 0;
-    }
-
-    .terms {
       font-size: 0.8rem;
-      color: #718096;
-      text-align: center;
+      color: #808080;
       margin: 0;
+      text-align: center;
+      word-break: break-word;
     }
 
-    @media (max-width: 480px) {
+    /* Success */
+    .success-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: #4ec9b0;
+      padding: 0.35rem 0.75rem;
+      background: rgba(78, 201, 176, 0.1);
+      border-radius: 3px;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: #0e639c;
+      color: #ffffff;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: #1177bb;
+    }
+
+    @media (max-width: 400px) {
       .auth-container {
-        padding: 1rem;
+        padding: 0.75rem;
       }
 
-      .loading-card,
-      .error-card,
-      .main-card {
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
-      }
-
-      .title {
-        font-size: 1.75rem;
-      }
-
-      .auth0-logo {
-        width: 120px;
+      .card {
+        padding: 1.5rem;
       }
     }
   `],
@@ -466,4 +323,3 @@ import { ProfileComponent } from '../../components/auth/profile.component';
 export class AuthComponent {
   protected auth = inject(AuthService);
 }
-
