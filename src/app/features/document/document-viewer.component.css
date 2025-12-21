@@ -1,0 +1,23 @@
+.document-content {
+  padding: 20px;
+  font-family: serif;
+  color: #000;
+  line-height: 1.6;
+}
+
+.document-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.document-content td,
+.document-content th {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.document-content img {
+  max-width: 100%;
+}
+
