@@ -1,2 +1,57 @@
 /* App root styles - using Tailwind for component styling */
 
+/* Status Bar */
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: linear-gradient(180deg, #1e2028 0%, #15171c 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  font-size: 0.75rem;
+  color: #8b949e;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.status-bar-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.status-item svg {
+  opacity: 0.7;
+}
+
+.user-info {
+  color: #58a6ff;
+}
+
+.guid-label {
+  color: #8b949e;
+  font-weight: 500;
+}
+
+.guid-value {
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  background: rgba(88, 166, 255, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  color: #79c0ff;
+  border: 1px solid rgba(88, 166, 255, 0.2);
+  letter-spacing: 0.02em;
+}
+
