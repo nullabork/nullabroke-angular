@@ -1,16 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UserKvService, KVEntry } from '../../core/services/user-kv.service';
+import { StringsService, StringEntry } from '../../core/services/strings.service';
 import { UserService } from '../../core/services/user.service';
 
 @Component({
-  selector: 'app-kv-test',
+  selector: 'app-strings-test',
   standalone: true,
   imports: [FormsModule],
   template: `
     <div class="container">
       <header class="header">
-        <h1>KV Store Test</h1>
+        <h1>Strings Store Test</h1>
         <p class="user-id">User ID: <code>{{ userService.guid() }}</code></p>
       </header>
 
@@ -66,30 +66,12 @@ import { UserService } from '../../core/services/user.service';
               <div class="entry">
                 <code class="entry-key">{{ entry.key }}</code>
                 <span class="entry-value">{{ entry.value }}</span>
-                <button (click)="deleteKey(entry.key)" class="btn btn-small btn-danger">
-                  Delete
-                </button>
               </div>
             }
           </div>
         } @else if (fetched()) {
           <div class="empty">No entries found</div>
         }
-      </section>
-
-      <section class="section">
-        <h2>Delete</h2>
-        <div class="form-row">
-          <input
-            type="text"
-            [(ngModel)]="deleteKeyInput"
-            placeholder="Key to delete"
-            class="input"
-          />
-          <button (click)="deleteByInput()" class="btn btn-danger" [disabled]="loading()">
-            Delete
-          </button>
-        </div>
       </section>
 
       <!-- Status -->
@@ -312,22 +294,21 @@ import { UserService } from '../../core/services/user.service';
     }
   `],
 })
-export class KvTestComponent {
+export class StringsTestComponent {
   protected userService = inject(UserService);
-  private kvService = inject(UserKvService);
+  private stringsService = inject(StringsService);
 
   // Form inputs
   setKey = '';
   setValue = '';
   getKey = '';
-  deleteKeyInput = '';
 
   // State
   loading = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
   getValue = signal<string | null>(null);
-  allEntries = signal<KVEntry[]>([]);
+  allEntries = signal<StringEntry[]>([]);
   fetched = signal(false);
 
   private clearStatus() {
@@ -341,7 +322,7 @@ export class KvTestComponent {
     this.clearStatus();
     this.loading.set(true);
 
-    this.kvService.set(this.setKey, this.setValue).subscribe({
+    this.stringsService.set(this.setKey, this.setValue).subscribe({
       next: () => {
         this.success.set(`Set "${this.setKey}" = "${this.setValue}"`);
         this.loading.set(false);
@@ -362,7 +343,7 @@ export class KvTestComponent {
     this.loading.set(true);
     this.getValue.set(null);
 
-    this.kvService.get(this.getKey).subscribe({
+    this.stringsService.get(this.getKey).subscribe({
       next: (value) => {
         this.getValue.set(value ?? '(null)');
         this.loading.set(false);
@@ -379,7 +360,7 @@ export class KvTestComponent {
     this.loading.set(true);
     this.fetched.set(false);
 
-    this.kvService.getAll().subscribe({
+    this.stringsService.getAll().subscribe({
       next: (entries) => {
         this.allEntries.set(entries);
         this.fetched.set(true);
@@ -392,28 +373,4 @@ export class KvTestComponent {
       },
     });
   }
-
-  deleteKey(key: string) {
-    this.clearStatus();
-    this.loading.set(true);
-
-    this.kvService.delete(key).subscribe({
-      next: () => {
-        this.success.set(`Deleted "${key}"`);
-        this.allEntries.update(entries => entries.filter(e => e.key !== key));
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err.message || 'Failed to delete');
-        this.loading.set(false);
-      },
-    });
-  }
-
-  deleteByInput() {
-    if (!this.deleteKeyInput) return;
-    this.deleteKey(this.deleteKeyInput);
-    this.deleteKeyInput = '';
-  }
 }
-

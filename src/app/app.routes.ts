@@ -22,10 +22,16 @@ export const routes: Routes = [
       import('./features/document/document-viewer.component').then((m) => m.DocumentViewerComponent),
   },
   {
-    path: 'kv-test',
+    path: 'strings-test',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/kv-test/kv-test.component').then((m) => m.KvTestComponent),
+      import('./features/strings-test/strings-test.component').then((m) => m.StringsTestComponent),
+  },
+  {
+    path: 'claims-test',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/claims-test/claims-test.component').then((m) => m.ClaimsTestComponent),
   },
   // Wildcard redirect to auth for any unknown routes
   {

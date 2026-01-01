@@ -1,9 +1,8 @@
 {
   "/api": {
-    "target": "http://115.70.110.212:81",
-    "secure": false,
+    "target": "https://api.nullabroke.com",
+    "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"
   }
 }
-

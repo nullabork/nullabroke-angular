@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: '/api/v1',
+  apiBaseUrl: 'https://api.nullabroke.com',
   auth0: {
     domain: 'dev-fwekxegf8nlun0il.us.auth0.com',
     clientId: 'vbPVaGG3DsCKYh6yEi85zgTuSRqcjHc6',
@@ -8,4 +8,3 @@ export const environment = {
     audience: 'http://115.70.110.212:81/api/v1',
   },
 };
-
