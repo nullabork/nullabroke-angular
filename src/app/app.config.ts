@@ -25,8 +25,6 @@ export const appConfig: ApplicationConfig = {
         allowedList: [
           // All requests to the API will include the JWT
           `${environment.apiBaseUrl}/*`,
-          // Also match the production URL directly
-          'http://115.70.110.212:81/api/v1/*',
         ],
       },
     }),
