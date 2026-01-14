@@ -20,6 +20,45 @@ export class DocumentService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/document`;
 
+  // ============================================
+  // URL Builders (for iframe src)
+  // ============================================
+
+  /**
+   * Get the URL for a document by sequence number.
+   * Use this as iframe src - the API serves HTML with injected JS.
+   */
+  getDocumentUrl(accessionNumber: string, seq: number | string = 1): string {
+    return `${this.baseUrl}/${accessionNumber}/${seq}`;
+  }
+
+  /**
+   * Get the URL for the primary document.
+   * Use this as iframe src.
+   */
+  getPrimaryDocumentUrl(accessionNumber: string): string {
+    return `${this.baseUrl}/${accessionNumber}/primary`;
+  }
+
+  /**
+   * Get the URL for a document by filename.
+   * Use this as iframe src.
+   */
+  getDocumentByFilenameUrl(accessionNumber: string, filename: string): string {
+    return `${this.baseUrl}/${accessionNumber}/${filename}`;
+  }
+
+  /**
+   * Get thumbnail URL for a document.
+   */
+  getThumbnailUrl(accessionNumber: string, seq: number | string, width: number = 200): string {
+    return `${this.baseUrl}/${accessionNumber}/${seq}/images?width=${width}`;
+  }
+
+  // ============================================
+  // API Methods
+  // ============================================
+
   /**
    * Get a document by accession number.
    * @param accessionNumber - The document's accession number

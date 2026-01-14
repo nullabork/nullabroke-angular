@@ -125,7 +125,7 @@
       </aside>
     }
 
-    <!-- Document Viewer -->
+    <!-- Document Viewer (Iframe) -->
     <main class="flex-1 flex flex-col bg-[#1e1e1e] overflow-hidden">
       @if (loading()) {
         <div class="flex-1 flex items-center justify-center">
@@ -137,57 +137,25 @@
           <p class="text-[15px]">Failed to load filing</p>
           <p class="text-[13px] mt-1 text-[#6e6e6e]">{{ error() }}</p>
         </div>
-      } @else if (documentLoading()) {
-        <div class="flex-1 flex items-center justify-center">
-          <ng-icon name="lucideLoader2" class="text-[32px] text-[#858585] animate-spin" />
-        </div>
-      } @else if (documentError()) {
-        <!-- API Error - Show fallback options -->
-        <div class="flex-1 flex flex-col items-center justify-center p-8">
-          <div class="w-full max-w-lg bg-[#252526] border border-[#3c3c3c]">
-            <div class="flex items-center gap-3 px-5 py-4 border-b border-[#3c3c3c]">
-              <ng-icon name="lucideAlertCircle" class="text-[28px] text-amber-500" />
-              <div>
-                <h2 class="text-[14px] font-medium text-[#cccccc]">Failed to Load Document</h2>
-                <p class="text-[12px] text-[#858585]">{{ selectedDocument()?.filename }}</p>
-              </div>
-            </div>
-
-            <div class="px-5 py-4 space-y-3 text-[13px]">
-              <div class="text-[11px] font-mono text-[#6e6e6e] bg-[#1e1e1e] p-2 rounded overflow-x-auto max-h-24 overflow-y-auto">
-                {{ documentError() }}
-              </div>
-            </div>
-
-            <div class="px-5 py-4 border-t border-[#3c3c3c] space-y-2">
-              <button
-                (click)="retryLoadDocument()"
-                class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-[#3c3c3c] hover:bg-[#4c4c4c] text-[#cccccc] text-[13px] transition-colors"
-              >
-                <ng-icon name="lucideRefreshCw" class="text-[16px]" />
-                Retry
-              </button>
-              @if (selectedDocument() && filing()) {
-                <a
-                  [href]="getSecGovUrl()"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-[#0e639c] hover:bg-[#1177bb] text-white text-[13px] font-medium transition-colors"
-                >
-                  <ng-icon name="lucideExternalLink" class="text-[16px]" />
-                  Open on SEC.gov
-                </a>
-              }
-            </div>
-          </div>
-        </div>
-      } @else if (documentHtml()) {
-        <!-- Render HTML document -->
+      } @else if (iframeSrc()) {
+        <!-- Document Frame Container -->
         <div class="flex-1 overflow-auto bg-white">
-          <div class="document-content" [innerHTML]="documentHtml()"></div>
+          <!-- Loading Overlay -->
+          @if (iframeLoading()) {
+            <div class="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+              <ng-icon name="lucideLoader2" class="text-[32px] text-[#858585] animate-spin" />
+            </div>
+          }
+          
+          <!-- Iframe - allow scrolling for reliability -->
+          <iframe
+            [src]="iframeSrc()"
+            class="w-full h-full border-0"
+            frameborder="0"
+          ></iframe>
         </div>
       } @else if (selectedDocument()) {
-        <!-- Placeholder when no content yet -->
+        <!-- Placeholder when loading document URL -->
         <div class="flex-1 flex flex-col items-center justify-center text-[#6e6e6e]">
           <ng-icon name="lucideLoader2" class="text-[48px] mb-3 animate-spin" />
           <p class="text-[13px]">Loading document...</p>
@@ -206,18 +174,20 @@
     <div class="flex items-center gap-3">
       @if (selectedDocument()) {
         <span>{{ selectedDocument()!.filename }}</span>
-        @if (documentError()) {
-          <span class="text-amber-300">· Error</span>
+        @if (iframeLoading()) {
+          <span class="text-blue-200">· Loading...</span>
         }
       } @else if (filing()) {
         <span>{{ filing()!.accessionNumber }}</span>
       }
     </div>
     <div class="flex items-center gap-3">
+      @if (selectionContext()) {
+        <span class="text-blue-200">Text selected</span>
+      }
       @if (filing()) {
         <span>{{ formatDate(filing()!.dateFiled) }}</span>
       }
     </div>
   </footer>
 </div>
-

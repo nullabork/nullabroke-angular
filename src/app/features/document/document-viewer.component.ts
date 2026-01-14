@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { 
+  ChangeDetectionStrategy, 
+  Component, 
+  DestroyRef, 
+  effect, 
+  inject, 
+  signal, 
+  HostListener,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -25,6 +33,31 @@ import { FilingService } from '../../core/services/filing.service';
 import { DocumentService } from '../../core/services/document.service';
 import { Filing } from '../../core/models/filing.model';
 import { DocumentFile, DocumentMeta } from '../../core/models/document.model';
+
+/**
+ * Selection data received from iframe postMessage
+ */
+interface SelectionData {
+  Text: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Mouse position received from iframe postMessage
+ */
+interface MousePosition {
+  x: number;
+  y: number;
+}
+
+/**
+ * PostMessage event data structure
+ */
+interface IframeMessage {
+  t: 'height' | 'selection';
+  d: number | SelectionData;
+  m?: MousePosition;
+}
 
 @Component({
   selector: 'app-document-viewer',
@@ -72,9 +105,13 @@ export class DocumentViewerComponent {
   selectedDocument = signal<DocumentFile | null>(null);
   sidebarOpen = signal(true);
 
-  documentLoading = signal(false);
-  documentError = signal<string | null>(null);
-  documentHtml = signal<SafeHtml | null>(null);
+  // Iframe state
+  iframeSrc = signal<SafeResourceUrl | null>(null);
+  iframeHeight = signal<number | string>('100%');
+  iframeLoading = signal(false);
+
+  // Selection context (for future AI/context features)
+  selectionContext = signal<SelectionData | null>(null);
 
   sections = signal({
     info: true,
@@ -93,6 +130,44 @@ export class DocumentViewerComponent {
         this.loading.set(false);
       }
     });
+  }
+
+  /**
+   * Listen for postMessage events from iframe
+   */
+  @HostListener('window:message', ['$event'])
+  onMessage(event: MessageEvent<IframeMessage>) {
+    // Validate message origin (optional - API should be trusted)
+    // if (!event.origin.includes('api.nullabroke.com')) return;
+
+    const data = event.data;
+    if (!data || typeof data !== 'object' || !data.t) return;
+
+    switch (data.t) {
+      case 'height':
+        // Update iframe height from document content
+        if (typeof data.d === 'number') {
+          this.iframeHeight.set(data.d);
+          this.iframeLoading.set(false);
+        }
+        break;
+
+      case 'selection':
+        // Handle text selection for context/AI analysis
+        if (data.d && typeof data.d === 'object' && 'Text' in data.d) {
+          const selectionData = data.d as SelectionData;
+          if (selectionData.Text) {
+            this.selectionContext.set(selectionData);
+            // TODO: Trigger AI context analysis
+            console.log('Selection:', selectionData.Text);
+          } else {
+            this.selectionContext.set(null);
+          }
+        } else {
+          this.selectionContext.set(null);
+        }
+        break;
+    }
   }
 
   loadFiling(accessionNumber: string) {
@@ -150,54 +225,34 @@ export class DocumentViewerComponent {
 
   selectDocument(doc: DocumentFile) {
     this.selectedDocument.set(doc);
-    this.loadDocumentContent(doc);
+    this.loadDocumentInIframe(doc);
   }
 
-  loadDocumentContent(doc: DocumentFile) {
+  /**
+   * Load document into iframe using direct API URL
+   */
+  loadDocumentInIframe(doc: DocumentFile) {
     const accessionNumber = this.accessionNumber();
     if (!accessionNumber) return;
 
-    this.documentLoading.set(true);
-    this.documentError.set(null);
-    this.documentHtml.set(null);
+    this.iframeLoading.set(true);
+    this.iframeHeight.set('100%'); // Reset height until we get postMessage
+    this.selectionContext.set(null);
 
-    // Use sequence number to fetch the document
+    // Build the document URL
     const sequence = doc.sequence?.toString() || '1';
-
-    this.documentService
-      .getDocumentFile(accessionNumber, sequence)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (blob) => this.handleDocumentBlob(blob),
-        error: (err) => this.handleDocumentError(err),
-      });
-  }
-
-  handleDocumentBlob(blob: Blob) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const html = reader.result as string;
-      this.documentHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-      this.documentLoading.set(false);
-    };
-    reader.onerror = () => {
-      this.documentError.set('Failed to read document content');
-      this.documentLoading.set(false);
-    };
-    reader.readAsText(blob);
-  }
-
-  handleDocumentError(err: any) {
-    console.error('Document API error:', err);
-    const errorMessage = err.error?.detail || err.message || 'Unknown error';
-    this.documentError.set(errorMessage);
-    this.documentLoading.set(false);
+    const rawUrl = this.documentService.getDocumentUrl(accessionNumber, sequence);
+    
+    console.log('[DocumentViewer] Loading document URL:', rawUrl);
+    
+    // Sanitize URL for iframe src
+    this.iframeSrc.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));
   }
 
   retryLoadDocument() {
     const doc = this.selectedDocument();
     if (doc) {
-      this.loadDocumentContent(doc);
+      this.loadDocumentInIframe(doc);
     }
   }
 
