@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import '@angular/cdk/overlay-prebuilt.css';
 
 /* VSCode Dark Theme Base */
 :root {
@@ -11,6 +12,99 @@
   --text-dim: #6e6e6e;
   --accent: #007acc;
   --accent-hover: #1177bb;
+
+  /* Sidebar theming (VSCode dark style) */
+  --sidebar-background: #252526;
+  --sidebar-foreground: #cccccc;
+  --sidebar-primary: #007acc;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #37373d;
+  --sidebar-accent-foreground: #cccccc;
+  --sidebar-border: #3c3c3c;
+  --sidebar-ring: #007acc;
+  
+  /* Override spartan defaults */
+  --sidebar: #252526;
+}
+
+/* Force spartan sidebar to use VSCode colors */
+[data-sidebar="sidebar"],
+hlm-sidebar,
+[hlmSidebarWrapper] {
+  --sidebar-background: #252526 !important;
+  --sidebar-foreground: #cccccc !important;
+  --sidebar-border: #3c3c3c !important;
+  --sidebar-accent: #37373d !important;
+  --sidebar-accent-foreground: #cccccc !important;
+}
+
+/* Sidebar menu button hover/active states */
+[hlmSidebarMenuButton]:hover {
+  background-color: #3c3c3c !important;
+}
+
+[hlmSidebarMenuButton][data-active="true"],
+[hlmSidebarMenuButton].active {
+  background-color: #37373d !important;
+}
+
+/* Sidebar group labels */
+[hlmSidebarGroupLabel] {
+  color: #858585 !important;
+  text-transform: uppercase;
+  font-size: 11px !important;
+  letter-spacing: 0.5px;
+}
+
+/* Spartan select/dropdown theming */
+hlm-select-content,
+[data-hlm-select-content],
+.cdk-overlay-pane hlm-select-content {
+  background-color: #252526 !important;
+  border-color: #3c3c3c !important;
+}
+
+hlm-option,
+[hlmOption] {
+  color: #cccccc !important;
+}
+
+hlm-option:hover,
+hlm-option:focus,
+[hlmOption]:hover,
+[hlmOption]:focus {
+  background-color: #3c3c3c !important;
+}
+
+/* Spartan dropdown menu theming */
+hlm-dropdown-menu,
+[data-hlm-dropdown-menu] {
+  background-color: #252526 !important;
+  border-color: #3c3c3c !important;
+}
+
+[hlmDropdownMenuItem],
+[hlmDropdownMenuCheckbox] {
+  color: #cccccc !important;
+}
+
+[hlmDropdownMenuItem]:hover,
+[hlmDropdownMenuItem]:focus,
+[hlmDropdownMenuCheckbox]:hover,
+[hlmDropdownMenuCheckbox]:focus {
+  background-color: #3c3c3c !important;
+}
+
+/* Context menu positioning */
+.cdk-overlay-container {
+  z-index: 1000;
+}
+
+/* Dialog styling */
+[data-state="open"] hlm-dialog-content,
+hlm-dialog-content {
+  background-color: #252526 !important;
+  border-color: #3c3c3c !important;
 }
 
 html,

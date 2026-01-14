@@ -72,16 +72,25 @@ export class StringsService {
    * @returns The parsed object or null if not found
    */
   getJson<T>(key: string): Observable<T | null> {
-    return this.get(key).pipe(
+    // Use http.get directly to handle cases where API returns JSON directly
+    return this.http.get<T | string | null>(`${this.baseUrl}/strings/${encodeURIComponent(key)}`).pipe(
       map((value) => {
-        if (value === null) {
+        if (value === null || value === undefined) {
           return null;
         }
-        try {
-          return JSON.parse(value) as T;
-        } catch {
-          return null;
+        // If it's already an object, return it directly
+        if (typeof value === 'object') {
+          return value as T;
         }
+        // If it's a string, try to parse it
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value) as T;
+          } catch {
+            return null;
+          }
+        }
+        return null;
       })
     );
   }

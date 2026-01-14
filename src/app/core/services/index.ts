@@ -5,3 +5,8 @@ export * from './user.service';
 export * from './strings.service';
 export * from './saved-queries.service';
 export * from './auth-test.service';
+export * from './query-parser.service';
+export * from './query-compiler.service';
+export * from './component-registry.service';
+export * from './form-types.service';
+export * from './tags.service';

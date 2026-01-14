@@ -12,13 +12,28 @@ import {
   lucideSave,
   lucidePlus,
   lucideCopy,
+  lucideAlertCircle,
+  lucidePanelLeft,
+  lucideTrash2,
+  lucidePencil,
+  lucideCheck,
+  lucideEllipsisVertical,
 } from '@ng-icons/lucide';
-import { BrnResizableGroup, BrnResizablePanel, BrnResizableHandle } from '@spartan-ng/brain/resizable';
 import { DatePipe } from '@angular/common';
+import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { BrnDialogImports } from '@spartan-ng/brain/dialog';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmInputImports } from '@spartan-ng/helm/input';
 
 import { FilingService } from '../../core/services/filing.service';
 import { SavedQueriesService } from '../../core/services/saved-queries.service';
 import { Filing } from '../../core/models/filing.model';
+import { SavedQuery } from '../../core/models/query-parameter.model';
+import { QueryParametersComponent } from '../../components/query-builder';
 
 @Component({
   selector: 'app-filing-search',
@@ -27,9 +42,15 @@ import { Filing } from '../../core/models/filing.model';
     ReactiveFormsModule, 
     NgIcon, 
     DatePipe,
-    BrnResizableGroup,
-    BrnResizablePanel,
-    BrnResizableHandle
+    HlmSidebarImports,
+    HlmSkeletonImports,
+    HlmIconImports,
+    HlmDropdownMenuImports,
+    BrnDialogImports,
+    HlmDialogImports,
+    HlmButtonImports,
+    HlmInputImports,
+    QueryParametersComponent,
   ],
   providers: [
     provideIcons({
@@ -41,6 +62,12 @@ import { Filing } from '../../core/models/filing.model';
       lucideSave,
       lucidePlus,
       lucideCopy,
+      lucideAlertCircle,
+      lucidePanelLeft,
+      lucideTrash2,
+      lucidePencil,
+      lucideCheck,
+      lucideEllipsisVertical,
     }),
   ],
   templateUrl: './filing-search.component.html',
@@ -61,17 +88,31 @@ export class FilingSearchComponent {
   error = signal<string | null>(null);
   results = signal<Filing[]>([]);
   hasSearched = signal(false);
-
-  // Sidebar state
-  private readonly SKINNY_THRESHOLD_PERCENT = 10;
-  isSidebarSkinny = signal(false);
   
-  // Expose saved queries service state as computed signals to avoid repeated keyvalue pipe calls
+  // Loading state for queries
+  queriesLoading = signal(true);
+
+  // Expose saved queries service state
   savedQueries = this.savedQueriesService.savedQueries;
   savedQueriesEntries = computed(() => Object.entries(this.savedQueries()));
   hasSavedQueries = computed(() => this.savedQueriesEntries().length > 0);
   currentGuid = this.savedQueriesService.currentGuid;
   isDirty = this.savedQueriesService.isDirty;
+
+  // Query parameters state
+  hasParameters = computed(() => this.savedQueriesService.currentParameters().length > 0);
+  parseErrors = this.savedQueriesService.currentParseErrors;
+  isQueryValid = this.savedQueriesService.isCurrentQueryValid;
+
+  // Skeleton items for loading state
+  readonly skeletonItems = [1, 2, 3, 4, 5];
+
+  // Rename state
+  renamingGuid = signal<string | null>(null);
+  renameValue = signal<string>('');
+
+  // Delete confirmation state
+  deleteConfirmGuid = signal<string | null>(null);
 
   constructor() {
     // Initialize query control from service state or use default
@@ -83,32 +124,49 @@ export class FilingSearchComponent {
       this.savedQueriesService.setQueryText(this.queryControl.value);
     }
 
-    // Sync control changes → service (sidebar selection syncs via selectSavedQuery method)
+    // Sync control changes → service
     this.queryControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(val => {
         this.savedQueriesService.setQueryText(val);
       });
+
+    // Simulate initial loading delay then mark as loaded
+    setTimeout(() => {
+      this.queriesLoading.set(false);
+    }, 500);
   }
 
   toggleQuery() {
     this.queryExpanded.update((v) => !v);
   }
 
-  onLayoutChange(sizes: number[]) {
-    this.isSidebarSkinny.set(sizes[0] < this.SKINNY_THRESHOLD_PERCENT);
-  }
-
   search() {
     const queryText = this.queryControl.value.trim();
     if (!queryText || this.loading()) return;
+
+    // Check for parse errors
+    if (!this.isQueryValid()) {
+      this.error.set('Query has syntax errors. Please fix the highlighted issues.');
+      return;
+    }
+
+    // Get the compiled query with parameter values replaced
+    const compiledQuery = this.savedQueriesService.getCompiledQuery();
+    
+    // Check compilation result
+    const compileResult = this.savedQueriesService.canCompile();
+    if (!compileResult.success) {
+      this.error.set(`Query compilation failed: ${compileResult.errors.join(', ')}`);
+      return;
+    }
 
     this.loading.set(true);
     this.error.set(null);
     this.hasSearched.set(true);
 
     this.filingService
-      .search(queryText)
+      .search(compiledQuery)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (filings) => {
@@ -142,13 +200,69 @@ export class FilingSearchComponent {
   }
 
   selectSavedQuery(guid: string) {
+    // Don't select if we're renaming this query
+    if (this.renamingGuid() === guid) return;
+    
     this.savedQueriesService.selectQuery(guid);
     this.queryControl.setValue(this.savedQueriesService.currentQuery());
+    // Automatically search when selecting a query
+    this.search();
+  }
+
+  // Context Menu Actions
+  onDuplicateQuery(guid: string) {
+    this.savedQueriesService.duplicateQuery(guid);
+  }
+
+  onDeleteQuery(guid: string) {
+    this.deleteConfirmGuid.set(guid);
+  }
+
+  confirmDelete() {
+    const guid = this.deleteConfirmGuid();
+    if (guid) {
+      this.savedQueriesService.deleteQuery(guid);
+      this.deleteConfirmGuid.set(null);
+    }
+  }
+
+  cancelDelete() {
+    this.deleteConfirmGuid.set(null);
+  }
+
+  onRenameQuery(guid: string) {
+    const queries = this.savedQueries();
+    const query = queries[guid];
+    this.renamingGuid.set(guid);
+    this.renameValue.set(query?.name || '');
+  }
+
+  saveRename() {
+    const guid = this.renamingGuid();
+    if (guid) {
+      this.savedQueriesService.renameQuery(guid, this.renameValue());
+      this.renamingGuid.set(null);
+      this.renameValue.set('');
+    }
+  }
+
+  cancelRename() {
+    this.renamingGuid.set(null);
+    this.renameValue.set('');
+  }
+
+  onRenameKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.saveRename();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelRename();
+    }
   }
 
   // Visual Helpers
   getColorForGuid(guid: string): string {
-    // Simple hash to hex color
     let hash = 0;
     for (let i = 0; i < guid.length; i++) {
       hash = guid.charCodeAt(i) + ((hash << 5) - hash);
@@ -157,15 +271,35 @@ export class FilingSearchComponent {
     return '#' + '00000'.substring(0, 6 - c.length) + c;
   }
 
-  getTextForSquare(query: string): string {
-    // Regex to find value after equals in quotes
-    // e.g. thing="10-k" -> 10k
+  getTextForSquare(savedQuery: SavedQuery | string): string {
+    if (typeof savedQuery === 'string') {
+      // Legacy format - extract from query
+      return this.extractFromQuery(savedQuery);
+    }
+    
+    // Use service method which handles name vs query
+    return this.savedQueriesService.getQueryIconText(savedQuery);
+  }
+
+  private extractFromQuery(query: string): string {
     const match = query.match(/=\s*['"]([^'"]+)['"]/);
     if (match && match[1]) {
-      // Remove non-alphanumeric
       const text = match[1].replace(/[^a-zA-Z0-9]/g, '');
       return text.substring(0, 4);
     }
+    
+    const paramMatch = query.match(/\{([^:}]+)/);
+    if (paramMatch && paramMatch[1]) {
+      return paramMatch[1].substring(0, 4);
+    }
+    
     return '??';
+  }
+
+  getQueryDisplayText(savedQuery: SavedQuery | string): string {
+    if (typeof savedQuery === 'string') {
+      return savedQuery;
+    }
+    return this.savedQueriesService.getQueryDisplayName(savedQuery);
   }
 }
