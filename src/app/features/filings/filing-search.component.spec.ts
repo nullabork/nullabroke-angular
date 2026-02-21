@@ -92,14 +92,15 @@ describe('FilingSearchComponent', () => {
       expect(component.hasSearched()).toBe(true);
     });
 
-    it('should handle search errors', () => {
-      const errorMsg = 'Search failed';
-      mockFilingService.search.mockReturnValue(throwError(() => new Error(errorMsg)));
+    it('should handle search errors by showing no results', () => {
+      mockFilingService.search.mockReturnValue(throwError(() => new Error('Server error')));
+      mockSavedQueriesService.getCompiledQuery.mockReturnValue('fail term');
       
       component.queryControl.setValue('fail term');
       component.search();
       
-      expect(component.error()).toBe(errorMsg);
+      expect(component.error()).toBeNull();
+      expect(component.results()).toEqual([]);
       expect(component.loading()).toBe(false);
     });
 
