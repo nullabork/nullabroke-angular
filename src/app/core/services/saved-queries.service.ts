@@ -105,16 +105,17 @@ export class SavedQueriesService {
             name: bp.name,
             blueprintId: bp.id,
           };
-          pIds.push(bp.id);
+          if (!pIds.includes(bp.id)) {
+            pIds.push(bp.id);
+          }
         }
-
-        this.persistProvisionedIds(pIds);
       }
 
       this.provisionedIds.set(pIds);
       this.savedQueries.set(savedQueries);
 
       if (newBlueprints.length > 0) {
+        this.persistProvisionedIds(pIds);
         this.persist();
       }
     });

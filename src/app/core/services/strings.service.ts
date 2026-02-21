@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -48,16 +48,9 @@ export class StringsService {
    */
   set(key: string, value: string): Observable<void> {
     const url = `${this.baseUrl}/strings/${encodeURIComponent(key)}`;
-
-    if (value.length > 2000) {
-      // [FromBody] string in ASP.NET Core needs application/json + JSON-encoded string
-      return this.http.post<void>(url, JSON.stringify(value), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const params = new HttpParams().set('value', value);
-    return this.http.post<void>(url, {}, { params });
+    return this.http.post<void>(url, JSON.stringify(value), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   /**
