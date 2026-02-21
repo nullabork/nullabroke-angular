@@ -141,15 +141,13 @@ export class SavedQueriesService {
     }
 
     // Backfill blueprintId for queries created before the field existed.
-    // Match by query text against known blueprints.
+    // Only match by exact query text -- name matching causes false positives
+    // on user-edited queries that kept the original name.
     const bpByQuery = new Map(this.blueprints.map(bp => [bp.query, bp.id]));
-    const bpByName = new Map(this.blueprints.map(bp => [bp.name, bp.id]));
 
     for (const [guid, sq] of Object.entries(migrated)) {
-      if (sq.blueprintId) continue;
-      const matchByQuery = bpByQuery.get(sq.query);
-      const matchByName = sq.name ? bpByName.get(sq.name) : undefined;
-      const matched = matchByQuery ?? matchByName;
+      if (sq.blueprintId !== undefined) continue;
+      const matched = bpByQuery.get(sq.query);
       if (matched) {
         migrated[guid] = { ...sq, blueprintId: matched };
       }
@@ -279,11 +277,26 @@ export class SavedQueriesService {
     if (!guid) return;
 
     const existing = this.savedQueries()[guid];
+    const newQuery = this.currentQuery();
+
+    // Only strip blueprintId if the user actually changed the query text.
+    // Normalize whitespace for comparison so selecting/running a query doesn't count as editing.
+    let blueprintId = existing?.blueprintId;
+    if (blueprintId) {
+      const original = this.blueprints.find(bp => bp.id === blueprintId);
+      if (original) {
+        const normalize = (s: string) => s.replace(/\s+/g, ' ').trim();
+        if (normalize(newQuery) !== normalize(original.query)) {
+          blueprintId = undefined;
+        }
+      }
+    }
+
     const savedQuery: SavedQuery = {
-      query: this.currentQuery(),
+      query: newQuery,
       values: [...this.currentValues()],
       name: existing?.name,
-      blueprintId: existing?.blueprintId,
+      blueprintId,
       lastUsed: existing?.lastUsed,
       pinned: existing?.pinned,
     };
