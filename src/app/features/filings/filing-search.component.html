@@ -417,7 +417,7 @@
                   <span>{{ filing.dateFiled | date:'mediumDate' }}</span>
                 </div>
                 @if (filing.description) {
-                  <div class="text-[11px] text-[#6e6e6e] truncate mt-0.5">
+                  <div class="text-[11px] text-[#6e6e6e] mt-0.5 break-words test">
                     {{ filing.description }}
                   </div>
                 }
