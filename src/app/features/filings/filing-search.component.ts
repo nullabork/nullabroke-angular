@@ -214,9 +214,8 @@ export class FilingSearchComponent {
           this.results.set(filings ?? []);
           this.loading.set(false);
         },
-        error: (err) => {
-          console.error('Search failed:', err);
-          this.error.set(err.message || 'Search failed. Please try again.');
+        error: () => {
+          this.results.set([]);
           this.loading.set(false);
         },
       });

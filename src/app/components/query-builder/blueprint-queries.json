@@ -2,103 +2,103 @@
   {
     "id": "bp-recent",
     "name": "Recent",
-    "query": "form_type not in ('3','4','5','3/A','4/A','5/A')\norder by snowflake desc\nlimit 15",
+    "query": "form_type not in ('3','4','5','3/A','4/A','5/A')\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-ownership",
     "name": "Ownership Filings",
-    "query": "form_type in ('3','4','5','3/A','4/A','5/A')\norder by snowflake desc\nlimit 15",
+    "query": "form_type in ('3','4','5','3/A','4/A','5/A')\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-ownership-discretionary",
     "name": "Ownership (Discretionary Buys/Sells)",
-    "query": "form_type in ('3','4','5','3/A','4/A','5/A')\nand relationship = 'ISSUER'\nand (description like 'Buy%' or description like 'Sell%')\nand (description not like '%10b5%')\norder by snowflake desc\nlimit 15",
+    "query": "form_type in ('3','4','5','3/A','4/A','5/A')\nand relationship = 'ISSUER'\nand (description like 'Buy%' or description like 'Sell%')\nand (description not like '%10b5%')\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-by-ticker",
     "name": "By Ticker",
-    "query": "cik = (select cik from ticker where ticker ilike {Ticker::MSFT})\norder by snowflake desc\nlimit 15",
+    "query": "cik = (select cik from ticker where ticker ilike {Ticker::MSFT})\norder by snowflake desc\nlimit 150",
     "values": ["MSFT"]
   },
   {
     "id": "bp-by-company",
     "name": "By Company Name",
-    "query": "company_name ilike {Company Name::%Microsoft%}\norder by snowflake desc\nlimit 15",
+    "query": "company_name ilike {Company Name::%Microsoft%}\norder by snowflake desc\nlimit 150",
     "values": ["%Microsoft%"]
-  },
-  {
-    "id": "bp-fulltext",
-    "name": "Fulltext Search",
-    "query": "accession_number in (select accession_number from filing_docs_blob where tsv @@\n(SELECT to_tsquery(string_agg(lexeme || ':*', ' & ' order by positions))\nFROM unnest(to_tsvector({Search Text::example}))\nlimit 1)\nlimit 15)\norder by snowflake desc\nlimit 15",
-    "values": ["example"]
   },
   {
     "id": "bp-shelf-registration",
     "name": "Shelf Registration Tracker",
-    "query": "(form_type in ('S-3', 'S-3ASR') or form_type ilike '424B%' or form_type = 'EFFECT')\norder by snowflake desc\nlimit 15",
+    "query": "(form_type in ('S-3', 'S-3ASR') or form_type ilike '424B%' or form_type = 'EFFECT')\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-periodic-reporting",
     "name": "Periodic Reporting",
-    "query": "form_type in ('10-K', '10-Q', '20-F')\norder by snowflake desc\nlimit 15",
+    "query": "form_type in ('10-K', '10-Q', '20-F')\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-mergers-acquisitions",
     "name": "Mergers & Acquisitions",
-    "query": "form_type in ('425', '425/A') or tags && array['M&A']\norder by snowflake desc\nlimit 15",
+    "query": "form_type in ('425', '425/A') or tags && array['M&A']\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-ipos",
     "name": "IPOs",
-    "query": "form_type in ('S-1', 'S-1/A')\norder by snowflake desc\nlimit 15",
+    "query": "form_type in ('S-1', 'S-1/A')\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-by-form-type",
     "name": "By Form Type",
-    "query": "form_type = {Form Type:FormTypes:8-K}\norder by snowflake desc\nlimit 15",
+    "query": "form_type = {Form Type:FormTypes:8-K}\norder by snowflake desc\nlimit 150",
     "values": ["8-K"]
   },
   {
     "id": "bp-presentations",
     "name": "Presentations",
-    "query": "array['Presentation'] && tags\norder by snowflake desc\nlimit 15",
+    "query": "array['Presentation'] && tags\nform_type = '8-K'\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-pdfs",
     "name": "PDFs",
-    "query": "array['PDF'] && tags\norder by snowflake desc\nlimit 15",
+    "query": "array['PDF'] && tags\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-technical-reports",
     "name": "Technical Reports",
-    "query": "array['Technical_Report'] && tags\norder by snowflake desc\nlimit 15",
+    "query": "array['Technical_Report'] && tags\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-stock-splits",
     "name": "Stock Splits",
-    "query": "array['Stock_Split'] && tags\norder by snowflake desc\nlimit 15",
+    "query": "array['Stock_Split'] && tags\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-spac",
     "name": "SPAC Filings",
-    "query": "cik in (select cik from company where sic_name = 'BLANK CHECKS')\norder by snowflake desc\nlimit 15",
+    "query": "cik in (select cik from company where sic_name = 'BLANK CHECKS')\norder by snowflake desc\nlimit 150",
+    "values": []
+  },
+  {
+    "id": "bp-spac",
+    "name": "SPAC Decks",
+    "query": "cik in (select cik from company where sic_name = 'BLANK CHECKS')\narray['Presentation'] && tags\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
     "id": "bp-biotechs",
     "name": "Biotechs",
-    "query": "cik in (select cik from company where sic_code in ('2834', '2836'))\norder by snowflake desc\nlimit 15",
+    "query": "cik in (select cik from company where sic_code in ('2834', '2836'))\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
