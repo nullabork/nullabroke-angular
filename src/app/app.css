@@ -81,8 +81,13 @@
   opacity: 0.7;
 }
 
-.status-help-btn {
+.status-btn-group {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-btn-group-item {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -92,19 +97,27 @@
   color: #8b949e;
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1;
 }
 
-.status-help-btn:hover {
+.status-btn-group-item:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.status-btn-group-item:last-child {
+  border-radius: 0 3px 3px 0;
+  border-left: none;
+}
+
+.status-btn-group-item:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #cccccc;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.status-help-btn svg {
+.status-btn-group-item svg {
   opacity: 0.7;
 }
 

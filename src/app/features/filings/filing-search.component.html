@@ -2,41 +2,43 @@
   <!-- Sidebar -->
   <hlm-sidebar collapsible="icon" class="bg-[#252526] border-r border-[#3c3c3c]">
     <div hlmSidebarContent class="bg-[#252526]">
-      <!-- Queries Group -->
-      <div hlmSidebarGroup>
-        <div class="flex items-center justify-between px-2 py-1.5 group-data-[collapsible=icon]:justify-center">
-          <span class="text-[11px] text-[#858585] uppercase tracking-wide group-data-[collapsible=icon]:hidden">Queries</span>
-          <button
-            [hlmDropdownMenuTrigger]="queriesMenu"
-            class="w-5 h-5 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded transition-colors"
-            title="Query actions"
-          >
-            <ng-icon name="lucideEllipsisVertical" class="text-[14px]" />
-          </button>
-          <ng-template #queriesMenu>
-            <hlm-dropdown-menu class="w-52 bg-[#252526] border-[#3c3c3c]">
-              <hlm-dropdown-menu-group>
-                <button hlmDropdownMenuItem (click)="newQuery()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                  <ng-icon name="lucidePlus" class="mr-2" /> New Query
+      <!-- Queries Header (sticky) -->
+      <div class="flex-none flex items-center justify-between px-2 py-1.5 border-b border-[#3c3c3c] bg-[#252526] group-data-[collapsible=icon]:justify-center">
+        <span class="text-[11px] text-[#858585] uppercase tracking-wide group-data-[collapsible=icon]:hidden">Queries</span>
+        <button
+          [hlmDropdownMenuTrigger]="queriesMenu"
+          class="w-5 h-5 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded transition-colors"
+          title="Query actions"
+        >
+          <ng-icon name="lucideEllipsisVertical" class="text-[14px]" />
+        </button>
+        <ng-template #queriesMenu>
+          <hlm-dropdown-menu class="w-52 bg-[#252526] border-[#3c3c3c]">
+            <hlm-dropdown-menu-group>
+              <button hlmDropdownMenuItem (click)="newQuery()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                <ng-icon name="lucidePlus" class="mr-2" /> New Query
+              </button>
+            </hlm-dropdown-menu-group>
+            <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
+            <hlm-dropdown-menu-group>
+              @if (hasDeletedBlueprints()) {
+                <button hlmDropdownMenuItem (click)="restoreDefaults()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                  <ng-icon name="lucideRotateCcw" class="mr-2" /> Restore Defaults
                 </button>
-              </hlm-dropdown-menu-group>
-              <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
-              <hlm-dropdown-menu-group>
-                @if (hasDeletedBlueprints()) {
-                  <button hlmDropdownMenuItem (click)="restoreDefaults()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                    <ng-icon name="lucideRotateCcw" class="mr-2" /> Restore Defaults
-                  </button>
-                }
-                <button hlmDropdownMenuItem (click)="resetAllQueries()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                  <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset Queries
-                </button>
-                <button hlmDropdownMenuItem (click)="deleteAllDefaults()" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
-                  <ng-icon name="lucideTrash2" class="mr-2" /> Delete All Defaults
-                </button>
-              </hlm-dropdown-menu-group>
-            </hlm-dropdown-menu>
-          </ng-template>
-        </div>
+              }
+              <button hlmDropdownMenuItem (click)="resetAllQueries()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset Queries
+              </button>
+              <button hlmDropdownMenuItem (click)="deleteAllDefaults()" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
+                <ng-icon name="lucideTrash2" class="mr-2" /> Delete All Defaults
+              </button>
+            </hlm-dropdown-menu-group>
+          </hlm-dropdown-menu>
+        </ng-template>
+      </div>
+
+      <!-- Queries List (scrollable) -->
+      <div hlmSidebarGroup class="flex-1 overflow-y-auto">
         <div hlmSidebarGroupContent>
           <ul hlmSidebarMenu>
             <!-- Loading Skeletons -->
@@ -81,9 +83,10 @@
                       </button>
                     </div>
                   } @else {
-                    <div 
-                      (click)="selectSavedQuery(entry[0])"
-                      class="group/item w-full flex items-center p-2 rounded hover:bg-[#3c3c3c] transition-colors text-[#cccccc] cursor-pointer relative"
+                    <a 
+                      [href]="'/?q=' + entry[0]"
+                      (click)="$event.preventDefault(); selectSavedQuery(entry[0])"
+                      class="group/item w-full flex items-center p-2 rounded hover:bg-[#3c3c3c] transition-colors text-[#cccccc] cursor-pointer relative no-underline"
                       [class.bg-[#37373d]]="currentGuid() === entry[0]"
                       [title]="getQueryDisplayText(entry[1])"
                     >
@@ -98,7 +101,7 @@
                       </span>
                       <button
                         [hlmDropdownMenuTrigger]="userMenu"
-                        (click)="$event.stopPropagation()"
+                        (click)="$event.stopPropagation(); $event.preventDefault()"
                         class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
                         title="More actions"
                       >
@@ -122,7 +125,7 @@
                           </hlm-dropdown-menu-group>
                         </hlm-dropdown-menu>
                       </ng-template>
-                    </div>
+                    </a>
                   }
                 </li>
               }
@@ -162,9 +165,10 @@
                         </button>
                       </div>
                     } @else {
-                      <div 
-                        (click)="selectSavedQuery(entry[0])"
-                        class="group/item w-full flex items-center p-2 rounded hover:bg-[#2a2a2e] transition-colors text-[#cccccc] cursor-pointer relative bg-[#17171a]"
+                      <a 
+                        [href]="'/?q=' + entry[0]"
+                        (click)="$event.preventDefault(); selectSavedQuery(entry[0])"
+                        class="group/item w-full flex items-center p-2 rounded hover:bg-[#2a2a2e] transition-colors text-[#cccccc] cursor-pointer relative bg-[#17171a] no-underline"
                         [class.!bg-[#2a2a30]]="currentGuid() === entry[0]"
                         [title]="getQueryDisplayText(entry[1])"
                       >
@@ -179,7 +183,7 @@
                         </span>
                         <button
                           [hlmDropdownMenuTrigger]="bpMenu"
-                          (click)="$event.stopPropagation()"
+                          (click)="$event.stopPropagation(); $event.preventDefault()"
                           class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
                           title="More actions"
                         >
@@ -206,7 +210,7 @@
                             </hlm-dropdown-menu-group>
                           </hlm-dropdown-menu>
                         </ng-template>
-                      </div>
+                      </a>
                     }
                   </li>
                 }
@@ -363,10 +367,9 @@
         <!-- Results List -->
         <div class="divide-y divide-[#3c3c3c]" role="list" aria-label="Search results">
           @for (filing of results(); track filing.id) {
-            <button
-              type="button"
-              (click)="openDocument(filing)"
-              class="group flex items-center w-full text-left hover:bg-[#2a2d2e] cursor-pointer"
+            <a
+              [routerLink]="['/document', filing.accessionNumber]"
+              class="group flex items-center w-full text-left hover:bg-[#2a2d2e] cursor-pointer no-underline"
               role="listitem"
             >
               <!-- Icon -->
@@ -389,8 +392,13 @@
                   <span>CIK {{ filing.centralIndexKey }}</span>
                   <span>{{ filing.dateFiled | date:'mediumDate' }}</span>
                 </div>
+                @if (filing.description) {
+                  <div class="text-[11px] text-[#6e6e6e] truncate mt-0.5">
+                    {{ filing.description }}
+                  </div>
+                }
               </div>
-            </button>
+            </a>
           }
         </div>
       }

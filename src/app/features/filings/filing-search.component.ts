@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, computed, effect } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -41,6 +41,7 @@ import { QueryParametersComponent } from '../../components/query-builder';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule, 
+    RouterLink,
     NgIcon, 
     DatePipe,
     HlmSidebarImports,
@@ -78,6 +79,7 @@ export class FilingSearchComponent {
   private readonly filingService = inject(FilingService);
   private readonly savedQueriesService = inject(SavedQueriesService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   queryControl = new FormControl<string>(
@@ -146,6 +148,15 @@ export class FilingSearchComponent {
     setTimeout(() => {
       this.queriesLoading.set(false);
     }, 500);
+
+    // Auto-select query from ?q= param once saved queries have loaded
+    effect(() => {
+      const queries = this.savedQueries();
+      const qParam = this.route.snapshot.queryParamMap.get('q');
+      if (qParam && queries[qParam] && this.currentGuid() !== qParam) {
+        this.selectSavedQuery(qParam);
+      }
+    });
   }
 
   toggleQuery() {
@@ -203,12 +214,12 @@ export class FilingSearchComponent {
   }
 
   selectSavedQuery(guid: string) {
-    // Don't select if we're renaming this query
     if (this.renamingGuid() === guid) return;
     
     this.savedQueriesService.selectQuery(guid);
     this.queryControl.setValue(this.savedQueriesService.currentQuery());
-    // Automatically search when selecting a query
+    // Update URL without triggering navigation
+    this.router.navigate([], { queryParams: { q: guid }, queryParamsHandling: 'merge' });
     this.search();
   }
 
