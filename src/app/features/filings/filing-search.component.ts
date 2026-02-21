@@ -19,6 +19,8 @@ import {
   lucideEllipsisVertical,
   lucideRotateCcw,
   lucideCircleHelp,
+  lucidePin,
+  lucidePinOff,
 } from '@ng-icons/lucide';
 import { DatePipe } from '@angular/common';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -71,6 +73,8 @@ import { QueryParametersComponent } from '../../components/query-builder';
       lucideEllipsisVertical,
       lucideRotateCcw,
       lucideCircleHelp,
+      lucidePin,
+      lucidePinOff,
     }),
   ],
   templateUrl: './filing-search.component.html',
@@ -101,15 +105,30 @@ export class FilingSearchComponent {
   currentGuid = this.savedQueriesService.currentGuid;
   hasDeletedBlueprints = this.savedQueriesService.hasDeletedBlueprints;
 
-  /** User-created queries (no blueprintId) - displayed at top */
+  /** User-created queries (no blueprintId) - pinned first, then by lastUsed desc */
   userQueryEntries = computed(() =>
-    Object.entries(this.savedQueries()).filter(([, q]) => !q.blueprintId)
+    Object.entries(this.savedQueries())
+      .filter(([, q]) => !q.blueprintId)
+      .sort(this.querySorter)
   );
 
-  /** Blueprint queries (has blueprintId) - displayed at bottom */
+  /** Blueprint queries (has blueprintId) - pinned first, then by lastUsed desc */
   blueprintQueryEntries = computed(() =>
-    Object.entries(this.savedQueries()).filter(([, q]) => !!q.blueprintId)
+    Object.entries(this.savedQueries())
+      .filter(([, q]) => !!q.blueprintId)
+      .sort(this.querySorter)
   );
+
+  private querySorter = (
+    [, a]: [string, SavedQuery],
+    [, b]: [string, SavedQuery]
+  ): number => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    const aTime = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+    const bTime = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+    return bTime - aTime;
+  };
 
   hasSavedQueries = computed(() =>
     this.userQueryEntries().length > 0 || this.blueprintQueryEntries().length > 0
@@ -230,6 +249,10 @@ export class FilingSearchComponent {
     this.queryControl.setValue(this.savedQueriesService.currentQuery(), { emitEvent: false });
   }
 
+  onTogglePin(guid: string) {
+    this.savedQueriesService.togglePin(guid);
+  }
+
   onResetBlueprint(guid: string) {
     this.savedQueriesService.resetToBlueprint(guid);
     this.queryControl.setValue(this.savedQueriesService.currentQuery(), { emitEvent: false });
@@ -343,5 +366,18 @@ export class FilingSearchComponent {
       return savedQuery;
     }
     return this.savedQueriesService.getQueryDisplayName(savedQuery);
+  }
+
+  getRelativeTime(iso: string | undefined): string {
+    if (!iso) return '';
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 }

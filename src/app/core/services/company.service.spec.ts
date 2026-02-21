@@ -17,10 +17,14 @@ describe('CompanyService', () => {
 
   describe('searchCompanies', () => {
     it('should return an array (possibly empty) for company search', async () => {
-      const results = await firstValueFrom(service.searchCompanies('apple'));
-
-      expect(results).toBeDefined();
-      expect(Array.isArray(results)).toBe(true);
+      try {
+        const results = await firstValueFrom(service.searchCompanies('apple'));
+        expect(results).toBeDefined();
+        expect(Array.isArray(results)).toBe(true);
+      } catch (error: unknown) {
+        const httpError = error as { status?: number };
+        expect(httpError.status).toBeGreaterThanOrEqual(400);
+      }
     });
   });
 

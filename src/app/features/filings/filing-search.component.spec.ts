@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FilingSearchComponent } from './filing-search.component';
 import { FilingService } from '../../core/services/filing.service';
 import { SavedQueriesService } from '../../core/services/saved-queries.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -43,12 +43,19 @@ describe('FilingSearchComponent', () => {
       navigate: vi.fn()
     };
 
+    const mockActivatedRoute = {
+      snapshot: {
+        queryParamMap: { get: () => null },
+      },
+    };
+
     await TestBed.configureTestingModule({
       imports: [FilingSearchComponent, ReactiveFormsModule],
       providers: [
         { provide: FilingService, useValue: mockFilingService },
         { provide: SavedQueriesService, useValue: mockSavedQueriesService },
         { provide: Router, useValue: mockRouter },
+        { provide: ActivatedRoute, useValue: mockActivatedRoute },
         provideIcons({ lucideSearch })
       ]
     }).compileComponents();
@@ -76,12 +83,13 @@ describe('FilingSearchComponent', () => {
 
     it('should search when search() is called', () => {
       component.queryControl.setValue('search term');
+      mockSavedQueriesService.getCompiledQuery.mockReturnValue('search term');
       component.search();
       
-      expect(component.loading()).toBe(true);
       expect(mockFilingService.search).toHaveBeenCalledWith('search term');
       expect(component.results()).toEqual([]);
       expect(component.loading()).toBe(false);
+      expect(component.hasSearched()).toBe(true);
     });
 
     it('should handle search errors', () => {

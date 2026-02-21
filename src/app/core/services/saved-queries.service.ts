@@ -284,6 +284,8 @@ export class SavedQueriesService {
       values: [...this.currentValues()],
       name: existing?.name,
       blueprintId: existing?.blueprintId,
+      lastUsed: existing?.lastUsed,
+      pinned: existing?.pinned,
     };
 
     this.savedQueries.update(queries => ({
@@ -298,7 +300,6 @@ export class SavedQueriesService {
    * Select a saved query from the sidebar.
    */
   selectQuery(guid: string) {
-    // Flush any pending auto-save for the previous query
     this.flushAutoSave();
 
     const queries = this.savedQueries();
@@ -308,6 +309,13 @@ export class SavedQueriesService {
       this.currentGuid.set(guid);
       this.currentQuery.set(savedQuery.query);
       this.currentValues.set([...savedQuery.values]);
+
+      // Stamp lastUsed
+      this.savedQueries.update(q => ({
+        ...q,
+        [guid]: { ...q[guid], lastUsed: new Date().toISOString() },
+      }));
+      this.persist();
     }
   }
 
@@ -388,6 +396,21 @@ export class SavedQueriesService {
       };
     });
     
+    this.persist();
+  }
+
+  /**
+   * Toggle the pinned state of a query.
+   */
+  togglePin(guid: string) {
+    this.savedQueries.update(queries => {
+      const existing = queries[guid];
+      if (!existing) return queries;
+      return {
+        ...queries,
+        [guid]: { ...existing, pinned: !existing.pinned },
+      };
+    });
     this.persist();
   }
 

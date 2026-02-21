@@ -96,13 +96,21 @@
                       >
                         {{ getTextForSquare(entry[1]) }}
                       </div>
-                      <span class="ml-3 text-[12px] truncate text-left flex-1 group-data-[collapsible=icon]:hidden">
-                        {{ getQueryDisplayText(entry[1]) }}
-                      </span>
+                      <div class="ml-3 flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+                        <div class="flex items-center gap-1">
+                          @if (entry[1].pinned) {
+                            <ng-icon name="lucidePin" class="text-[11px] text-[#4ec9b0] flex-none" />
+                          }
+                          <span class="text-[12px] truncate">{{ getQueryDisplayText(entry[1]) }}</span>
+                        </div>
+                        @if (entry[1].lastUsed) {
+                          <div class="text-[10px] text-[#555555]">{{ getRelativeTime(entry[1].lastUsed) }}</div>
+                        }
+                      </div>
                       <button
                         [hlmDropdownMenuTrigger]="userMenu"
                         (click)="$event.stopPropagation(); $event.preventDefault()"
-                        class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
+                        class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden flex-none"
                         title="More actions"
                       >
                         <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
@@ -110,6 +118,10 @@
                       <ng-template #userMenu>
                         <hlm-dropdown-menu class="w-48 bg-[#252526] border-[#3c3c3c]">
                           <hlm-dropdown-menu-group>
+                            <button hlmDropdownMenuItem (click)="onTogglePin(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                              <ng-icon [name]="entry[1].pinned ? 'lucidePinOff' : 'lucidePin'" class="mr-2" />
+                              {{ entry[1].pinned ? 'Unpin' : 'Pin' }}
+                            </button>
                             <button hlmDropdownMenuItem (click)="onDuplicateQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
                               <ng-icon name="lucideCopy" class="mr-2" /> Duplicate
                             </button>
@@ -178,13 +190,21 @@
                         >
                           {{ getTextForSquare(entry[1]) }}
                         </div>
-                        <span class="ml-3 text-[12px] truncate text-left flex-1 group-data-[collapsible=icon]:hidden">
-                          {{ getQueryDisplayText(entry[1]) }}
-                        </span>
+                        <div class="ml-3 flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+                          <div class="flex items-center gap-1">
+                            @if (entry[1].pinned) {
+                              <ng-icon name="lucidePin" class="text-[11px] text-[#4ec9b0] flex-none" />
+                            }
+                            <span class="text-[12px] truncate">{{ getQueryDisplayText(entry[1]) }}</span>
+                          </div>
+                          @if (entry[1].lastUsed) {
+                            <div class="text-[10px] text-[#555555]">{{ getRelativeTime(entry[1].lastUsed) }}</div>
+                          }
+                        </div>
                         <button
                           [hlmDropdownMenuTrigger]="bpMenu"
                           (click)="$event.stopPropagation(); $event.preventDefault()"
-                          class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
+                          class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden flex-none"
                           title="More actions"
                         >
                           <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
@@ -192,6 +212,10 @@
                         <ng-template #bpMenu>
                           <hlm-dropdown-menu class="w-48 bg-[#252526] border-[#3c3c3c]">
                             <hlm-dropdown-menu-group>
+                              <button hlmDropdownMenuItem (click)="onTogglePin(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                                <ng-icon [name]="entry[1].pinned ? 'lucidePinOff' : 'lucidePin'" class="mr-2" />
+                                {{ entry[1].pinned ? 'Unpin' : 'Pin' }}
+                              </button>
                               <button hlmDropdownMenuItem (click)="onResetBlueprint(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
                                 <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset
                               </button>

@@ -77,6 +77,12 @@ export interface SavedQuery {
 
   /** If this query was created from a blueprint, the blueprint's stable ID */
   blueprintId?: string;
+
+  /** ISO timestamp of when this query was last selected/executed */
+  lastUsed?: string;
+
+  /** Whether this query is pinned to the top of its section */
+  pinned?: boolean;
 }
 
 /**
