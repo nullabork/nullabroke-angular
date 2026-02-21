@@ -2,13 +2,14 @@ import { inject, Injectable, signal, computed } from '@angular/core';
 import { StringsService } from './strings.service';
 import { QueryParserService } from './query-parser.service';
 import { QueryCompilerService } from './query-compiler.service';
-import { catchError, of, take, tap } from 'rxjs';
+import { catchError, forkJoin, of, take } from 'rxjs';
 import { 
   SavedQuery, 
   SavedQueriesMap, 
   LegacySavedQueriesMap,
-  QueryParameter,
+  BlueprintQuery,
 } from '../models/query-parameter.model';
+import blueprintQueries from '../../components/query-builder/blueprint-queries.json';
 
 /**
  * Type for parameter values (can be string, number, or array of strings for tags)
@@ -23,15 +24,28 @@ export class SavedQueriesService {
   private readonly parserService = inject(QueryParserService);
   private readonly compilerService = inject(QueryCompilerService);
   private readonly STORAGE_KEY = 'saved_queries';
+  private readonly BLUEPRINTS_KEY = 'provisioned_blueprints';
 
   private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly AUTO_SAVE_DELAY = 800;
+
+  private readonly blueprints = blueprintQueries as BlueprintQuery[];
 
   // State
   readonly savedQueries = signal<SavedQueriesMap>({});
   readonly currentGuid = signal<string | null>(null);
   readonly currentQuery = signal<string>('');
   readonly currentValues = signal<ParameterValue[]>([]);
+  readonly provisionedIds = signal<string[]>([]);
+
+  /** Whether any provisioned blueprints have been deleted and can be restored */
+  readonly hasDeletedBlueprints = computed(() => {
+    const queries = this.savedQueries();
+    const existing = new Set(
+      Object.values(queries).map(q => q.blueprintId).filter(Boolean)
+    );
+    return this.provisionedIds().some(id => !existing.has(id));
+  });
   
   // Parsed parameters for current query
   readonly currentParameters = computed(() => {
@@ -62,43 +76,81 @@ export class SavedQueriesService {
   }
 
   /**
-   * Load saved queries from the server.
+   * Load saved queries and provision any new blueprint queries.
    * Handles both legacy format (string) and new format (SavedQuery object).
    */
   load() {
-    this.stringsService.getJson<SavedQueriesMap | LegacySavedQueriesMap>(this.STORAGE_KEY).pipe(
-      take(1),
-      tap((queries) => {
-        if (queries) {
-          // Migrate legacy format if needed
-          const migrated = this.migrateQueries(queries);
-          this.savedQueries.set(migrated);
+    forkJoin({
+      queries: this.stringsService.getJson<SavedQueriesMap | LegacySavedQueriesMap>(this.STORAGE_KEY).pipe(
+        catchError(() => of(null))
+      ),
+      provisioned: this.stringsService.getJson<string[]>(this.BLUEPRINTS_KEY).pipe(
+        catchError(() => of(null))
+      ),
+    }).pipe(take(1)).subscribe(({ queries, provisioned }) => {
+      let savedQueries: SavedQueriesMap = {};
+      if (queries) {
+        savedQueries = this.migrateQueries(queries);
+      }
+
+      const pIds = provisioned ?? [];
+      const newBlueprints = this.blueprints.filter(bp => !pIds.includes(bp.id));
+
+      if (newBlueprints.length > 0) {
+        for (const bp of newBlueprints) {
+          const guid = this.generateGuid();
+          savedQueries[guid] = {
+            query: bp.query,
+            values: [...bp.values],
+            name: bp.name,
+            blueprintId: bp.id,
+          };
+          pIds.push(bp.id);
         }
-      }),
-      catchError(err => {
-        console.error('Failed to load saved queries', err);
-        return of({});
-      })
-    ).subscribe();
+
+        this.persistProvisionedIds(pIds);
+      }
+
+      this.provisionedIds.set(pIds);
+      this.savedQueries.set(savedQueries);
+
+      if (newBlueprints.length > 0) {
+        this.persist();
+      }
+    });
   }
 
   /**
    * Migrate legacy query format to new format with values.
+   * Also backfills blueprintId on queries that were provisioned before the field existed.
    */
   private migrateQueries(queries: SavedQueriesMap | LegacySavedQueriesMap): SavedQueriesMap {
     const migrated: SavedQueriesMap = {};
     
     for (const [guid, value] of Object.entries(queries)) {
       if (typeof value === 'string') {
-        // Legacy format: just a query string
         const parsed = this.parserService.parseQuery(value);
         migrated[guid] = {
           query: value,
           values: this.compilerService.getDefaultValues(parsed),
         };
       } else if (typeof value === 'object' && value !== null && 'query' in value) {
-        // New format: SavedQuery object
         migrated[guid] = value as SavedQuery;
+      }
+    }
+
+    // Backfill blueprintId for queries created before the field existed.
+    // Match by query text against known blueprints.
+    const bpByQuery = new Map(this.blueprints.map(bp => [bp.query, bp.id]));
+    const bpByName = new Map(this.blueprints.map(bp => [bp.name, bp.id]));
+
+    for (const [guid, sq] of Object.entries(migrated)) {
+      if (sq.blueprintId) continue;
+      const matchByQuery = bpByQuery.get(sq.query);
+      const matchByName = sq.name ? bpByName.get(sq.name) : undefined;
+      const matched = matchByQuery ?? matchByName;
+      if (matched) {
+        migrated[guid] = { ...sq, blueprintId: matched };
       }
     }
     
@@ -230,6 +282,7 @@ export class SavedQueriesService {
       query: this.currentQuery(),
       values: [...this.currentValues()],
       name: existing?.name,
+      blueprintId: existing?.blueprintId,
     };
 
     this.savedQueries.update(queries => ({
@@ -397,6 +450,75 @@ export class SavedQueriesService {
   getDisplayText(guid: string): string {
     const saved = this.savedQueries()[guid];
     return saved?.query ?? '';
+  }
+
+  /**
+   * Restore any deleted blueprint queries.
+   * Only re-creates blueprints that were provisioned but no longer exist.
+   */
+  restoreDeletedBlueprints() {
+    const queries = this.savedQueries();
+    const existingBpIds = new Set(
+      Object.values(queries).map(q => q.blueprintId).filter(Boolean)
+    );
+
+    const deletedBlueprints = this.blueprints.filter(
+      bp => this.provisionedIds().includes(bp.id) && !existingBpIds.has(bp.id)
+    );
+
+    if (deletedBlueprints.length === 0) return;
+
+    const updated = { ...queries };
+    for (const bp of deletedBlueprints) {
+      const guid = this.generateGuid();
+      updated[guid] = {
+        query: bp.query,
+        values: [...bp.values],
+        name: bp.name,
+        blueprintId: bp.id,
+      };
+    }
+
+    this.savedQueries.set(updated);
+    this.persist();
+  }
+
+  /**
+   * Reset a blueprint query back to its original state.
+   * Only works for queries that have a blueprintId.
+   */
+  resetToBlueprint(guid: string) {
+    const query = this.savedQueries()[guid];
+    if (!query?.blueprintId) return;
+
+    const blueprint = this.blueprints.find(bp => bp.id === query.blueprintId);
+    if (!blueprint) return;
+
+    const reset: SavedQuery = {
+      query: blueprint.query,
+      values: [...blueprint.values],
+      name: blueprint.name,
+      blueprintId: blueprint.id,
+    };
+
+    this.savedQueries.update(queries => ({
+      ...queries,
+      [guid]: reset,
+    }));
+
+    // If this is the currently selected query, update live state
+    if (this.currentGuid() === guid) {
+      this.currentQuery.set(reset.query);
+      this.currentValues.set([...reset.values]);
+    }
+
+    this.persist();
+  }
+
+  private persistProvisionedIds(ids: string[]) {
+    this.stringsService.setJson(this.BLUEPRINTS_KEY, ids)
+      .pipe(take(1))
+      .subscribe({ error: err => console.error('Failed to save provisioned blueprints', err) });
   }
 
   private persist() {

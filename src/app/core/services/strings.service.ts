@@ -42,19 +42,22 @@ export class StringsService {
   }
 
   /**
-   * Set a string value
-   * @param key - The key to set
-   * @param value - The value to store
+   * Set a string value.
+   * Sends small values as query params, large values in the POST body
+   * to avoid URL length limits.
    */
   set(key: string, value: string): Observable<void> {
+    const url = `${this.baseUrl}/strings/${encodeURIComponent(key)}`;
+
+    if (value.length > 2000) {
+      // [FromBody] string in ASP.NET Core needs application/json + JSON-encoded string
+      return this.http.post<void>(url, JSON.stringify(value), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const params = new HttpParams().set('value', value);
-    return this.http.post<void>(
-      `${this.baseUrl}/strings/${encodeURIComponent(key)}`,
-      {},
-      { 
-        params
-      }
-    );
+    return this.http.post<void>(url, {}, { params });
   }
 
   /**

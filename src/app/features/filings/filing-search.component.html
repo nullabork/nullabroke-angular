@@ -13,6 +13,17 @@
                 <span>New Query</span>
               </button>
             </li>
+            @if (hasDeletedBlueprints()) {
+              <li hlmSidebarMenuItem>
+                <button hlmSidebarMenuButton (click)="restoreDefaults()" class="text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]">
+                  <ng-icon hlm name="lucideRotateCcw" />
+                  <span class="group-data-[collapsible=icon]:hidden">
+                    <span class="block text-[12px]">Restore Defaults</span>
+                    <span class="block text-[10px] text-[#6e6e6e]">Brings back deleted defaults</span>
+                  </span>
+                </button>
+              </li>
+            }
           </ul>
         </div>
       </div>
@@ -35,10 +46,9 @@
                 </li>
               }
             } @else {
-              <!-- Saved Queries -->
-              @for (entry of savedQueriesEntries(); track entry[0]) {
+              <!-- User Queries (top) -->
+              @for (entry of userQueryEntries(); track entry[0]) {
                 <li hlmSidebarMenuItem>
-                  <!-- Renaming Mode -->
                   @if (renamingGuid() === entry[0]) {
                     <div class="flex items-center gap-1 p-1 w-full">
                       <div 
@@ -67,66 +77,43 @@
                       </button>
                     </div>
                   } @else {
-                    <!-- Normal Display Mode -->
                     <div 
                       (click)="selectSavedQuery(entry[0])"
                       class="group/item w-full flex items-center p-2 rounded hover:bg-[#3c3c3c] transition-colors text-[#cccccc] cursor-pointer relative"
                       [class.bg-[#37373d]]="currentGuid() === entry[0]"
                       [title]="getQueryDisplayText(entry[1])"
                     >
-                      <!-- Square/Color Box -->
                       <div 
                         class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
                         [style.background-color]="getColorForGuid(entry[0])"
                       >
                         {{ getTextForSquare(entry[1]) }}
                       </div>
-
-                      <!-- Text (hidden when collapsed) -->
                       <span class="ml-3 text-[12px] truncate text-left flex-1 group-data-[collapsible=icon]:hidden">
                         {{ getQueryDisplayText(entry[1]) }}
                       </span>
-                      
-                      <!-- Actions Menu Button (shows on hover) -->
                       <button
-                        [hlmDropdownMenuTrigger]="queryMenu"
+                        [hlmDropdownMenuTrigger]="userMenu"
                         (click)="$event.stopPropagation()"
                         class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
                         title="More actions"
                       >
                         <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
                       </button>
-                      
-                      <!-- Dropdown Menu -->
-                      <ng-template #queryMenu>
+                      <ng-template #userMenu>
                         <hlm-dropdown-menu class="w-48 bg-[#252526] border-[#3c3c3c]">
                           <hlm-dropdown-menu-group>
-                            <button 
-                              hlmDropdownMenuItem 
-                              (click)="onDuplicateQuery(entry[0])"
-                              class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]"
-                            >
-                              <ng-icon name="lucideCopy" class="mr-2" />
-                              Duplicate
+                            <button hlmDropdownMenuItem (click)="onDuplicateQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                              <ng-icon name="lucideCopy" class="mr-2" /> Duplicate
                             </button>
-                            <button 
-                              hlmDropdownMenuItem 
-                              (click)="onRenameQuery(entry[0])"
-                              class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]"
-                            >
-                              <ng-icon name="lucidePencil" class="mr-2" />
-                              Rename
+                            <button hlmDropdownMenuItem (click)="onRenameQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                              <ng-icon name="lucidePencil" class="mr-2" /> Rename
                             </button>
                           </hlm-dropdown-menu-group>
                           <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
                           <hlm-dropdown-menu-group>
-                            <button 
-                              hlmDropdownMenuItem 
-                              (click)="onDeleteQuery(entry[0])"
-                              class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]"
-                            >
-                              <ng-icon name="lucideTrash2" class="mr-2" />
-                              Delete
+                            <button hlmDropdownMenuItem (click)="onDeleteQuery(entry[0])" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
+                              <ng-icon name="lucideTrash2" class="mr-2" /> Delete
                             </button>
                           </hlm-dropdown-menu-group>
                         </hlm-dropdown-menu>
@@ -134,6 +121,91 @@
                     </div>
                   }
                 </li>
+              }
+
+              <!-- Blueprint Queries (bottom, slightly different bg) -->
+              @if (blueprintQueryEntries().length > 0) {
+                <li hlmSidebarMenuItem class="mt-1">
+                  <div class="text-[10px] text-[#6e6e6e] uppercase tracking-wide px-2 py-1 group-data-[collapsible=icon]:hidden">Defaults</div>
+                </li>
+                @for (entry of blueprintQueryEntries(); track entry[0]) {
+                  <li hlmSidebarMenuItem>
+                    @if (renamingGuid() === entry[0]) {
+                      <div class="flex items-center gap-1 p-1 w-full bg-[#17171a] rounded">
+                        <div 
+                          class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
+                          [style.background-color]="getColorForGuid(entry[0])"
+                        >
+                          {{ getTextForSquare(entry[1]) }}
+                        </div>
+                        <input
+                          hlmInput
+                          type="text"
+                          [value]="renameValue()"
+                          (input)="renameValue.set($any($event.target).value)"
+                          (keydown)="onRenameKeydown($event)"
+                          (blur)="saveRename()"
+                          placeholder="Enter name..."
+                          class="flex-1 h-7 text-[12px] bg-[#1e1e1e] border-[#3c3c3c] text-[#cccccc] group-data-[collapsible=icon]:hidden"
+                          autofocus
+                        />
+                        <button
+                          (click)="saveRename()"
+                          class="w-7 h-7 flex items-center justify-center text-[#4ec9b0] hover:bg-[#3c3c3c] rounded group-data-[collapsible=icon]:hidden"
+                          title="Save"
+                        >
+                          <ng-icon name="lucideCheck" size="sm" />
+                        </button>
+                      </div>
+                    } @else {
+                      <div 
+                        (click)="selectSavedQuery(entry[0])"
+                        class="group/item w-full flex items-center p-2 rounded hover:bg-[#2a2a2e] transition-colors text-[#cccccc] cursor-pointer relative bg-[#17171a]"
+                        [class.!bg-[#2a2a30]]="currentGuid() === entry[0]"
+                        [title]="getQueryDisplayText(entry[1])"
+                      >
+                        <div 
+                          class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
+                          [style.background-color]="getColorForGuid(entry[0])"
+                        >
+                          {{ getTextForSquare(entry[1]) }}
+                        </div>
+                        <span class="ml-3 text-[12px] truncate text-left flex-1 group-data-[collapsible=icon]:hidden">
+                          {{ getQueryDisplayText(entry[1]) }}
+                        </span>
+                        <button
+                          [hlmDropdownMenuTrigger]="bpMenu"
+                          (click)="$event.stopPropagation()"
+                          class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
+                          title="More actions"
+                        >
+                          <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
+                        </button>
+                        <ng-template #bpMenu>
+                          <hlm-dropdown-menu class="w-48 bg-[#252526] border-[#3c3c3c]">
+                            <hlm-dropdown-menu-group>
+                              <button hlmDropdownMenuItem (click)="onResetBlueprint(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                                <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset
+                              </button>
+                              <button hlmDropdownMenuItem (click)="onDuplicateQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                                <ng-icon name="lucideCopy" class="mr-2" /> Duplicate
+                              </button>
+                              <button hlmDropdownMenuItem (click)="onRenameQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                                <ng-icon name="lucidePencil" class="mr-2" /> Rename
+                              </button>
+                            </hlm-dropdown-menu-group>
+                            <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
+                            <hlm-dropdown-menu-group>
+                              <button hlmDropdownMenuItem (click)="onDeleteQuery(entry[0])" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
+                                <ng-icon name="lucideTrash2" class="mr-2" /> Delete
+                              </button>
+                            </hlm-dropdown-menu-group>
+                          </hlm-dropdown-menu>
+                        </ng-template>
+                      </div>
+                    }
+                  </li>
+                }
               }
               
               <!-- Empty state -->

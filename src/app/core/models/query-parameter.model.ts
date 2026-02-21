@@ -74,6 +74,9 @@ export interface SavedQuery {
   
   /** Optional display name for the query */
   name?: string;
+
+  /** If this query was created from a blueprint, the blueprint's stable ID */
+  blueprintId?: string;
 }
 
 /**
@@ -115,3 +118,18 @@ export interface RenderComponentConfig {
  * Legacy saved queries format for migration support.
  */
 export type LegacySavedQueriesMap = Record<string, string>;
+
+/**
+ * A blueprint query that gets provisioned for new users.
+ * Each has a stable ID so it's only created once per user.
+ */
+export interface BlueprintQuery {
+  /** Stable identifier - used to track whether this blueprint has been provisioned */
+  id: string;
+  /** Display name for the query */
+  name: string;
+  /** The query string (may include parameter syntax) */
+  query: string;
+  /** Default parameter values */
+  values: (string | number | string[])[];
+}

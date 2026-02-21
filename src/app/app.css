@@ -81,3 +81,30 @@
   opacity: 0.7;
 }
 
+.status-help-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  font-family: inherit;
+  color: #8b949e;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.status-help-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cccccc;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.status-help-btn svg {
+  opacity: 0.7;
+}
+

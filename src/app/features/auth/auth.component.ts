@@ -81,7 +81,7 @@ import { ProfileComponent } from '../../components/auth/profile.component';
                 </svg>
               </div>
               
-              <h1 class="title">Looko2</h1>
+              <h1 class="title">Nullabroke</h1>
               <p class="subtitle">SEC Filing Viewer</p>
               
               <app-login-button />

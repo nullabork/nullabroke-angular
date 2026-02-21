@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.gitignore
+.angular
+.vscode
+.cursor
+.idea
+*.md
+!README.md
+.env
+.env.*
+vitest.config.ts
+tsconfig.spec.json
+**/*.spec.ts

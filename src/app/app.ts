@@ -11,7 +11,7 @@ import { UserService } from './core/services/user.service';
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('looko2');
+  protected readonly title = signal('nullabroke');
   protected readonly userService = inject(UserService);
   private readonly auth = inject(AuthService);
 

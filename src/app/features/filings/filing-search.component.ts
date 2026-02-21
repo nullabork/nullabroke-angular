@@ -17,6 +17,8 @@ import {
   lucidePencil,
   lucideCheck,
   lucideEllipsisVertical,
+  lucideRotateCcw,
+  lucideCircleHelp,
 } from '@ng-icons/lucide';
 import { DatePipe } from '@angular/common';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -66,6 +68,8 @@ import { QueryParametersComponent } from '../../components/query-builder';
       lucidePencil,
       lucideCheck,
       lucideEllipsisVertical,
+      lucideRotateCcw,
+      lucideCircleHelp,
     }),
   ],
   templateUrl: './filing-search.component.html',
@@ -92,9 +96,22 @@ export class FilingSearchComponent {
 
   // Expose saved queries service state
   savedQueries = this.savedQueriesService.savedQueries;
-  savedQueriesEntries = computed(() => Object.entries(this.savedQueries()));
-  hasSavedQueries = computed(() => this.savedQueriesEntries().length > 0);
   currentGuid = this.savedQueriesService.currentGuid;
+  hasDeletedBlueprints = this.savedQueriesService.hasDeletedBlueprints;
+
+  /** User-created queries (no blueprintId) - displayed at top */
+  userQueryEntries = computed(() =>
+    Object.entries(this.savedQueries()).filter(([, q]) => !q.blueprintId)
+  );
+
+  /** Blueprint queries (has blueprintId) - displayed at bottom */
+  blueprintQueryEntries = computed(() =>
+    Object.entries(this.savedQueries()).filter(([, q]) => !!q.blueprintId)
+  );
+
+  hasSavedQueries = computed(() =>
+    this.userQueryEntries().length > 0 || this.blueprintQueryEntries().length > 0
+  );
 
   // Query parameters state
   hasParameters = computed(() => this.savedQueriesService.currentParameters().length > 0);
@@ -202,6 +219,15 @@ export class FilingSearchComponent {
     this.queryControl.setValue(this.savedQueriesService.currentQuery(), { emitEvent: false });
   }
 
+  onResetBlueprint(guid: string) {
+    this.savedQueriesService.resetToBlueprint(guid);
+    this.queryControl.setValue(this.savedQueriesService.currentQuery(), { emitEvent: false });
+  }
+
+  restoreDefaults() {
+    this.savedQueriesService.restoreDeletedBlueprints();
+  }
+
   onDeleteQuery(guid: string) {
     this.deleteConfirmGuid.set(guid);
   }
@@ -282,6 +308,10 @@ export class FilingSearchComponent {
     }
     
     return '??';
+  }
+
+  isBlueprint(savedQuery: SavedQuery | string): boolean {
+    return typeof savedQuery !== 'string' && !!savedQuery.blueprintId;
   }
 
   getQueryDisplayText(savedQuery: SavedQuery | string): string {

@@ -159,7 +159,7 @@ export class DocumentViewerComponent {
           if (selectionData.Text) {
             this.selectionContext.set(selectionData);
             // TODO: Trigger AI context analysis
-            console.log('Selection:', selectionData.Text);
+            // TODO: Trigger AI context analysis
           } else {
             this.selectionContext.set(null);
           }
@@ -249,8 +249,6 @@ export class DocumentViewerComponent {
     // Build the document URL
     const sequence = doc.sequence?.toString() || '1';
     const rawUrl = this.documentService.getDocumentUrl(accessionNumber, sequence);
-    
-    console.log('[DocumentViewer] Loading document URL:', rawUrl);
     
     // Sanitize URL for iframe src
     this.iframeSrc.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));

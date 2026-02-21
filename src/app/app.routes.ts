@@ -22,6 +22,12 @@ export const routes: Routes = [
       import('./features/document/document-viewer.component').then((m) => m.DocumentViewerComponent),
   },
   {
+    path: 'help',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/help/help.component').then((m) => m.HelpComponent),
+  },
+  {
     path: 'strings-test',
     canActivate: [authGuard],
     loadComponent: () =>
