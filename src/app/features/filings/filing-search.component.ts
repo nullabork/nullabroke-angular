@@ -37,6 +37,7 @@ import { SavedQueriesService } from '../../core/services/saved-queries.service';
 import { Filing } from '../../core/models/filing.model';
 import { SavedQuery } from '../../core/models/query-parameter.model';
 import { QueryParametersComponent } from '../../components/query-builder';
+import { WelcomeModalComponent } from '../../components/welcome-modal/welcome-modal.component';
 
 @Component({
   selector: 'app-filing-search',
@@ -55,6 +56,7 @@ import { QueryParametersComponent } from '../../components/query-builder';
     HlmButtonImports,
     HlmInputImports,
     QueryParametersComponent,
+    WelcomeModalComponent,
   ],
   providers: [
     provideIcons({
@@ -149,6 +151,7 @@ export class FilingSearchComponent {
   // Delete confirmation state
   deleteConfirmGuid = signal<string | null>(null);
 
+
   constructor() {
     // Initialize query control from service state
     const currentQuery = this.savedQueriesService.currentQuery();
@@ -167,6 +170,7 @@ export class FilingSearchComponent {
     setTimeout(() => {
       this.queriesLoading.set(false);
     }, 500);
+
 
     // Auto-select query from ?q= param once saved queries have loaded
     effect(() => {

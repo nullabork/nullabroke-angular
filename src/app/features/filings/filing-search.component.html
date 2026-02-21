@@ -261,6 +261,9 @@
     </div>
   </hlm-sidebar>
 
+  <!-- Welcome Modal -->
+  <app-welcome-modal />
+
   <!-- Delete Confirmation Dialog -->
   <hlm-dialog [state]="deleteConfirmGuid() ? 'open' : 'closed'" (closed)="cancelDelete()">
     <hlm-dialog-content class="sm:max-w-[400px] bg-[#252526] border-[#3c3c3c]" *brnDialogContent="let ctx">
