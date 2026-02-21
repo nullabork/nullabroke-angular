@@ -228,6 +228,19 @@ export class FilingSearchComponent {
     this.savedQueriesService.restoreDeletedBlueprints();
   }
 
+  resetAllQueries() {
+    this.savedQueriesService.resetAllQueries();
+    this.queryControl.setValue('', { emitEvent: false });
+  }
+
+  deleteAllDefaults() {
+    this.savedQueriesService.deleteAllDefaults();
+    // Sync query control if current was a blueprint
+    if (!this.savedQueriesService.currentGuid()) {
+      this.queryControl.setValue('', { emitEvent: false });
+    }
+  }
+
   onDeleteQuery(guid: string) {
     this.deleteConfirmGuid.set(guid);
   }

@@ -2,37 +2,41 @@
   <!-- Sidebar -->
   <hlm-sidebar collapsible="icon" class="bg-[#252526] border-r border-[#3c3c3c]">
     <div hlmSidebarContent class="bg-[#252526]">
-      <!-- Actions Group -->
-      <div hlmSidebarGroup>
-        <div hlmSidebarGroupLabel class="text-[11px] text-[#858585] uppercase tracking-wide px-2 py-1.5">Actions</div>
-        <div hlmSidebarGroupContent>
-          <ul hlmSidebarMenu>
-            <li hlmSidebarMenuItem>
-              <button hlmSidebarMenuButton (click)="newQuery()" class="text-[#cccccc] hover:bg-[#3c3c3c]">
-                <ng-icon hlm name="lucidePlus" />
-                <span>New Query</span>
-              </button>
-            </li>
-            @if (hasDeletedBlueprints()) {
-              <li hlmSidebarMenuItem>
-                <button hlmSidebarMenuButton (click)="restoreDefaults()" class="text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]">
-                  <ng-icon hlm name="lucideRotateCcw" />
-                  <span class="group-data-[collapsible=icon]:hidden">
-                    <span class="block text-[12px]">Restore Defaults</span>
-                    <span class="block text-[10px] text-[#6e6e6e]">Brings back deleted defaults</span>
-                  </span>
-                </button>
-              </li>
-            }
-          </ul>
-        </div>
-      </div>
-
-      <div hlmSidebarSeparator class="bg-[#3c3c3c]"></div>
-
       <!-- Queries Group -->
       <div hlmSidebarGroup>
-        <div hlmSidebarGroupLabel class="text-[11px] text-[#858585] uppercase tracking-wide px-2 py-1.5">Queries</div>
+        <div class="flex items-center justify-between px-2 py-1.5 group-data-[collapsible=icon]:justify-center">
+          <span class="text-[11px] text-[#858585] uppercase tracking-wide group-data-[collapsible=icon]:hidden">Queries</span>
+          <button
+            [hlmDropdownMenuTrigger]="queriesMenu"
+            class="w-5 h-5 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded transition-colors"
+            title="Query actions"
+          >
+            <ng-icon name="lucideEllipsisVertical" class="text-[14px]" />
+          </button>
+          <ng-template #queriesMenu>
+            <hlm-dropdown-menu class="w-52 bg-[#252526] border-[#3c3c3c]">
+              <hlm-dropdown-menu-group>
+                <button hlmDropdownMenuItem (click)="newQuery()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                  <ng-icon name="lucidePlus" class="mr-2" /> New Query
+                </button>
+              </hlm-dropdown-menu-group>
+              <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
+              <hlm-dropdown-menu-group>
+                @if (hasDeletedBlueprints()) {
+                  <button hlmDropdownMenuItem (click)="restoreDefaults()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                    <ng-icon name="lucideRotateCcw" class="mr-2" /> Restore Defaults
+                  </button>
+                }
+                <button hlmDropdownMenuItem (click)="resetAllQueries()" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                  <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset Queries
+                </button>
+                <button hlmDropdownMenuItem (click)="deleteAllDefaults()" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
+                  <ng-icon name="lucideTrash2" class="mr-2" /> Delete All Defaults
+                </button>
+              </hlm-dropdown-menu-group>
+            </hlm-dropdown-menu>
+          </ng-template>
+        </div>
         <div hlmSidebarGroupContent>
           <ul hlmSidebarMenu>
             <!-- Loading Skeletons -->

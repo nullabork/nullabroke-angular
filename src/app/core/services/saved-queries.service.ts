@@ -516,6 +516,55 @@ export class SavedQueriesService {
     this.persist();
   }
 
+  /**
+   * Delete everything and re-create only the default blueprints.
+   */
+  resetAllQueries() {
+    const freshQueries: SavedQueriesMap = {};
+    for (const bp of this.blueprints) {
+      const guid = this.generateGuid();
+      freshQueries[guid] = {
+        query: bp.query,
+        values: [...bp.values],
+        name: bp.name,
+        blueprintId: bp.id,
+      };
+    }
+
+    const pIds = this.blueprints.map(bp => bp.id);
+    this.currentGuid.set(null);
+    this.currentQuery.set('');
+    this.currentValues.set([]);
+    this.provisionedIds.set(pIds);
+    this.savedQueries.set(freshQueries);
+    this.persistProvisionedIds(pIds);
+    this.persist();
+  }
+
+  /**
+   * Delete all default/blueprint queries, keeping only user-created ones.
+   */
+  deleteAllDefaults() {
+    const queries = this.savedQueries();
+    const userOnly: SavedQueriesMap = {};
+    for (const [guid, q] of Object.entries(queries)) {
+      if (!q.blueprintId) {
+        userOnly[guid] = q;
+      }
+    }
+
+    // If the currently selected query was a blueprint, clear selection
+    const currentQ = this.currentGuid();
+    if (currentQ && queries[currentQ]?.blueprintId) {
+      this.currentGuid.set(null);
+      this.currentQuery.set('');
+      this.currentValues.set([]);
+    }
+
+    this.savedQueries.set(userOnly);
+    this.persist();
+  }
+
   private persistProvisionedIds(ids: string[]) {
     this.stringsService.setJson(this.BLUEPRINTS_KEY, ids)
       .pipe(take(1))
