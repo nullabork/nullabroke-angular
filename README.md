@@ -45,7 +45,6 @@ ng test
 ```
 
 ## Running end-to-end tests
-## test 2
 
 For end-to-end (e2e) testing, run:
 
