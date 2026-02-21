@@ -1,0 +1,324 @@
+# Compatibility & Evolution Policies
+# Defines versioning, breaking changes, and migration rules
+
+domain: Compatibility
+version: 1.0.0
+description: |
+  Compatibility policies governing API evolution, schema changes,
+  and system migrations. Following SDD principles, these policies
+  ensure controlled evolution without breaking existing consumers.
+
+# =============================================================================
+# VERSIONING STRATEGY
+# =============================================================================
+versioning:
+  api:
+    scheme: url-path
+    format: /api/v{major}
+    current: v1
+    description: |
+      API versions are included in the URL path.
+      Major version increments indicate breaking changes.
+
+  specs:
+    scheme: semver
+    format: MAJOR.MINOR.PATCH
+    description: |
+      Specification versions follow Semantic Versioning.
+      - MAJOR: Breaking changes to contracts
+      - MINOR: Backward-compatible additions
+      - PATCH: Backward-compatible fixes
+
+  data:
+    scheme: schema-version
+    description: |
+      Data schemas include version metadata.
+      Migrations handle version transitions.
+
+# =============================================================================
+# COMPATIBILITY RULES
+# =============================================================================
+compatibilityRules:
+  api:
+    policy: backward-compatible
+    description: |
+      API changes must maintain backward compatibility within a major version.
+      Consumers using the current API contract must continue to work.
+
+    allowed:
+      - Adding new optional fields to responses
+      - Adding new optional query parameters
+      - Adding new endpoints
+      - Adding new enum values (if consumers ignore unknown)
+      - Relaxing validation constraints
+      - Adding new response codes (if consumers handle unknown codes)
+
+    forbidden:
+      - Removing fields from responses
+      - Removing endpoints
+      - Removing query parameters
+      - Changing field types
+      - Renaming fields
+      - Changing required to optional (response)
+      - Changing optional to required (request)
+      - Changing enum values (existing)
+      - Tightening validation constraints
+
+    requiresApproval:
+      - Adding required fields to requests
+      - Deprecating endpoints
+      - Deprecating fields
+      - Changing default values
+
+  schemas:
+    policy: forward-compatible
+    description: |
+      Schema changes must allow older producers to work with newer consumers.
+
+    rules:
+      - New fields must have defaults or be optional
+      - Enum additions must be handled gracefully
+      - Type widening is allowed (int → long)
+      - Type narrowing is forbidden
+
+  query-language:
+    policy: backward-compatible
+    description: |
+      Query language changes must not break existing saved queries.
+
+    allowed:
+      - Adding new fields
+      - Adding new operators
+      - Adding new clauses
+      - Adding new functions
+
+    forbidden:
+      - Removing fields
+      - Removing operators
+      - Changing operator semantics
+      - Changing field types
+
+# =============================================================================
+# BREAKING CHANGE PROCESS
+# =============================================================================
+breakingChanges:
+  process:
+    1:
+      name: Proposal
+      description: Document the breaking change and rationale
+      artifacts:
+        - RFC document
+        - Impact assessment
+        - Migration guide draft
+
+    2:
+      name: Review
+      description: Review by stakeholders
+      approvers:
+        - Tech Lead
+        - API consumers (if external)
+      duration: 1 week minimum
+
+    3:
+      name: Deprecation
+      description: Mark old behavior as deprecated
+      duration: 2 release cycles minimum
+      requirements:
+        - Deprecation warnings in responses
+        - Documentation updates
+        - Migration guide published
+
+    4:
+      name: Migration Support
+      description: Provide migration tooling and support
+      requirements:
+        - Automated migration scripts
+        - Support channel
+        - Migration deadline communicated
+
+    5:
+      name: Removal
+      description: Remove deprecated functionality
+      requirements:
+        - Verify no active usage
+        - Update to new major version
+        - Announcement
+
+  documentation:
+    required:
+      - Breaking change description
+      - Reason for change
+      - Migration steps
+      - Before/after examples
+      - Timeline
+      - Support contacts
+
+# =============================================================================
+# DEPRECATION POLICY
+# =============================================================================
+deprecation:
+  minimumNotice: 90 days
+  communicationChannels:
+    - API response headers (Deprecation, Sunset)
+    - Changelog
+    - Documentation
+    - Direct notification (for known consumers)
+
+  headers:
+    Deprecation:
+      description: RFC 8594 deprecation header
+      format: "true" or ISO 8601 date
+      example: 'Deprecation: "2025-06-01"'
+
+    Sunset:
+      description: RFC 8594 sunset header
+      format: HTTP date
+      example: 'Sunset: Sat, 01 Jun 2025 00:00:00 GMT'
+
+    Link:
+      description: Link to deprecation documentation
+      example: 'Link: <https://docs.nullabroke.com/deprecations/v1>; rel="deprecation"'
+
+  responseWarnings:
+    header: X-Deprecated-Feature
+    body:
+      field: _deprecationWarnings
+      schema:
+        type: array
+        items:
+          type: object
+          properties:
+            feature: string
+            message: string
+            sunset: date
+            alternative: string
+
+# =============================================================================
+# MIGRATION SUPPORT
+# =============================================================================
+migrations:
+  dataSchemas:
+    strategy: versioned-transformers
+    description: |
+      Data migrations use versioned transformer functions.
+      Each version increment has a corresponding migration.
+
+    requirements:
+      - Migrations must be idempotent
+      - Migrations must be reversible (where possible)
+      - Migrations must preserve data integrity
+      - Migrations must be tested
+
+  savedQueries:
+    strategy: query-rewriting
+    description: |
+      Saved queries are rewritten during migration.
+      Invalid queries after migration are flagged for user review.
+
+    handling:
+      valid: Automatic rewrite
+      invalid: Flag for user, preserve original
+      deprecated: Add warning, suggest alternative
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+featureFlags:
+  description: |
+    Feature flags control gradual rollout of new features.
+    Flags are defined in environment configuration.
+
+  naming: FEATURE_{DOMAIN}_{NAME}
+  examples:
+    - FEATURE_FILINGS_THUMBNAILS
+    - FEATURE_FILINGS_SNIPPETS
+    - FEATURE_DOCUMENT_AI_SUMMARY
+
+  lifecycle:
+    1: Development (flag off by default)
+    2: Testing (flag on in test environments)
+    3: Gradual rollout (percentage-based)
+    4: General availability (flag on by default)
+    5: Cleanup (remove flag, feature always on)
+
+  cleanup:
+    policy: |
+      Feature flags must be removed within 90 days of GA.
+      Flags older than 90 days post-GA are technical debt.
+
+# =============================================================================
+# BROWSER SUPPORT
+# =============================================================================
+browserSupport:
+  policy: evergreen
+  description: Support latest 2 versions of major browsers
+
+  supported:
+    - Chrome (latest 2 versions)
+    - Firefox (latest 2 versions)
+    - Safari (latest 2 versions)
+    - Edge (latest 2 versions)
+
+  notSupported:
+    - Internet Explorer (any version)
+    - Browsers older than 2 versions
+
+  polyfills:
+    - core-js (ES features)
+    - zone.js (Angular requirement)
+
+  features:
+    required:
+      - ES2020+
+      - CSS Grid
+      - CSS Custom Properties
+      - Fetch API
+      - Web Workers
+
+# =============================================================================
+# DEPENDENCY MANAGEMENT
+# =============================================================================
+dependencies:
+  policy: latest-stable
+  description: |
+    Dependencies should use the latest stable versions.
+    Security updates must be applied within SLA.
+
+  updateSchedule:
+    security: Within 24 hours of disclosure
+    minor: Weekly review
+    major: Monthly review with impact assessment
+
+  lockfile:
+    required: true
+    format: package-lock.json
+
+  prohibited:
+    - Dependencies with known vulnerabilities (critical/high)
+    - Deprecated packages
+    - Packages without active maintenance (>1 year)
+
+  audit:
+    tool: npm audit
+    frequency: Every build
+    failOn: high, critical
+
+# =============================================================================
+# CHANGELOG
+# =============================================================================
+changelog:
+  format: Keep a Changelog
+  location: CHANGELOG.md
+  
+  categories:
+    - Added (new features)
+    - Changed (changes to existing features)
+    - Deprecated (features marked for removal)
+    - Removed (removed features)
+    - Fixed (bug fixes)
+    - Security (security fixes)
+
+  requirements:
+    - Entry for every user-facing change
+    - Link to relevant issue/PR
+    - Migration notes for breaking changes

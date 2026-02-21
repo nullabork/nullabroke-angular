@@ -28,12 +28,15 @@ describe('FilingSearchComponent', () => {
       savedQueries: signal({}),
       currentGuid: signal(null),
       currentQuery: signal(initialQuery),
-      isDirty: signal(false),
+      currentParameters: signal([]),
+      currentParseErrors: signal([]),
+      isCurrentQueryValid: signal(true),
       newQuery: vi.fn(),
-      duplicate: vi.fn(),
-      save: vi.fn(),
+      duplicateQuery: vi.fn(),
       selectQuery: vi.fn(),
       setQueryText: vi.fn(),
+      getCompiledQuery: vi.fn().mockReturnValue(initialQuery),
+      canCompile: vi.fn().mockReturnValue({ success: true, errors: [] }),
     };
 
     mockRouter = {
@@ -62,11 +65,8 @@ describe('FilingSearchComponent', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should initialize query control with default query', () => {
-      // The default query from component code
-      const defaultQuery = "form_type = '8-K' order by snowflake desc limit 50";
-      expect(component.queryControl.value).toBe(defaultQuery);
-      expect(mockSavedQueriesService.setQueryText).toHaveBeenCalledWith(defaultQuery);
+    it('should initialize with empty query control when no current query', () => {
+      expect(component.queryControl.value).toBe('');
     });
 
     it('should call setQueryText on control value change', () => {
@@ -106,29 +106,8 @@ describe('FilingSearchComponent', () => {
       expect(mockSavedQueriesService.newQuery).toHaveBeenCalled();
       expect(component.queryControl.value).toBe('');
       
-      component.duplicateQuery();
-      expect(mockSavedQueriesService.duplicate).toHaveBeenCalled();
-      
-      component.saveQuery();
-      expect(mockSavedQueriesService.save).toHaveBeenCalled();
-      
       component.selectSavedQuery('guid-1');
       expect(mockSavedQueriesService.selectQuery).toHaveBeenCalledWith('guid-1');
-      // note: selectSavedQuery calls selectQuery which updates the signal.
-      // In a real app, the signal update would trigger the component to update,
-      // but since we mocked the service methods to do nothing (except return void),
-      // we need to simulate the signal update if we want to test the reaction, 
-      // but the component logic for updating control from signal is actually:
-      // "let's just use the service selectQuery method to update the control directly... 
-      //  For now, let's watch the signal."
-      // The component DOES NOT seem to have an effect() listening to currentQuery signal to update control
-      // except in constructor?
-      // Wait, line 86-90 subscribes to control to update service.
-      // But how does service update control?
-      // Lines 98-105 comments say "refactored to use effect if possible" but there is NO effect code visible in the file provided.
-      // Ah, line 183: this.queryControl.setValue(this.savedQueriesService.currentQuery());
-      // So selectSavedQuery updates the control manually.
-      expect(component.queryControl.value).toBe(''); // Mock signal still returns ''
     });
 
     it('should toggle query expansion', () => {

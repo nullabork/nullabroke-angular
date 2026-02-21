@@ -1,0 +1,325 @@
+# Filing Domain Specification
+# Defines SEC filing records and search functionality
+
+domain: Filing
+version: 1.0.0
+description: |
+  The Filing domain represents SEC filing records and provides
+  search functionality using a SQL-like query language.
+
+# =============================================================================
+# ENTITIES
+# =============================================================================
+entities:
+  Filing:
+    description: An SEC filing record
+    identifier: id
+    properties:
+      id:
+        type: integer
+        required: true
+        immutable: true
+        constraints:
+          minimum: 1
+      accessionNumber:
+        type: AccessionNumber
+        required: true
+      formType:
+        type: FormType
+        required: true
+      companyConformedName:
+        type: string
+      centralIndexKey:
+        type: CIK
+        required: true
+      relationship:
+        type: string
+        description: Relationship to filer (e.g., "Issuer")
+      dateFiled:
+        type: date
+        required: true
+      datePublished:
+        type: datetime
+      size:
+        type: integer
+        constraints:
+          minimum: 0
+        description: Filing size in bytes
+      description:
+        type: string
+      noDocument:
+        type: boolean
+        description: Whether filing has no associated documents
+      ticker:
+        type: Ticker
+      tags:
+        type: string[]
+        description: User-applied tags
+      snowflakeId:
+        type: string
+        description: Unique identifier for ordering
+      fileNumber:
+        type: string
+      filmNumber:
+        type: string
+      sponsorCIK:
+        type: CIK
+        nullable: true
+      documentCount:
+        type: integer
+        nullable: true
+      amendedAccessionNumber:
+        type: AccessionNumber
+        description: If this is an amendment, the original accession number
+      isAmendment:
+        type: boolean
+      amendmentAccessionNumber:
+        type: AccessionNumber
+        description: If this has been amended, the amendment accession number
+      isAmended:
+        type: boolean
+      fileName:
+        type: string
+      isEmpty:
+        type: boolean
+      absoluteFileUrl:
+        type: uri
+
+  FilingSearchQuery:
+    description: Query for searching filings
+    properties:
+      query:
+        type: string
+        nullable: true
+        constraints:
+          maxLength: 2000
+        description: SQL-like query string
+      save:
+        type: boolean
+        default: false
+        description: Save query for sharing via TinyString
+
+  FilingSearchResponse:
+    description: Response from filing search
+    properties:
+      value:
+        type: Filing[]
+        required: true
+      formatters:
+        type: any[]
+      contentTypes:
+        type: any[]
+      declaredType:
+        type: any
+      statusCode:
+        type: integer
+        required: true
+
+  AutocompleteResult:
+    description: Autocomplete suggestion for query builder
+    properties:
+      word:
+        type: string
+        required: true
+      type:
+        type: integer
+        required: true
+        description: Type code for categorization
+      category:
+        type: string
+        nullable: true
+      description:
+        type: string
+        nullable: true
+      helpUrl:
+        type: uri
+        nullable: true
+
+# =============================================================================
+# QUERY LANGUAGE SPECIFICATION
+# =============================================================================
+queryLanguage:
+  name: NullabrokeQL
+  description: SQL-like query language for filtering SEC filings
+  
+  fields:
+    - name: form_type
+      type: string
+      operators: ['=', '!=', 'in', 'not in', 'like']
+      examples:
+        - "form_type = '10-K'"
+        - "form_type in ('10-K', '10-Q', '8-K')"
+        - "form_type like '10-%'"
+
+    - name: ticker
+      type: string
+      operators: ['=', '!=', 'in', 'not in', 'like']
+      examples:
+        - "ticker = 'AAPL'"
+        - "ticker in ('AAPL', 'MSFT', 'GOOGL')"
+
+    - name: company_name
+      type: string
+      operators: ['=', 'like', 'contains']
+      examples:
+        - "company_name like '%Apple%'"
+        - "company_name contains 'Microsoft'"
+
+    - name: cik
+      type: integer
+      operators: ['=', '!=', 'in', 'not in']
+      examples:
+        - "cik = 320193"
+        - "cik in (320193, 789019)"
+
+    - name: date_filed
+      type: date
+      operators: ['=', '!=', '>', '<', '>=', '<=', 'between']
+      examples:
+        - "date_filed >= '2024-01-01'"
+        - "date_filed between '2024-01-01' and '2024-12-31'"
+
+    - name: size
+      type: integer
+      operators: ['=', '!=', '>', '<', '>=', '<=']
+      examples:
+        - "size > 1000000"
+
+    - name: tags
+      type: array
+      operators: ['contains', 'any']
+      examples:
+        - "tags contains 'important'"
+
+    - name: snowflake
+      type: string
+      description: Unique ordering identifier
+      operators: ['>', '<', '>=', '<=']
+
+  clauses:
+    - name: order by
+      syntax: "ORDER BY field [ASC|DESC]"
+      default_direction: DESC
+      examples:
+        - "order by date_filed desc"
+        - "order by snowflake desc"
+
+    - name: limit
+      syntax: "LIMIT n"
+      default: 15
+      max: 1000
+      examples:
+        - "limit 50"
+
+  syntax:
+    template: "[conditions] [ORDER BY clause] [LIMIT clause]"
+    examples:
+      - "form_type = '10-K' order by date_filed desc limit 15"
+      - "ticker = 'AAPL' and form_type in ('10-K', '8-K')"
+      - "company_name like '%Bank%' and date_filed >= '2024-01-01'"
+
+# =============================================================================
+# BUSINESS RULES
+# =============================================================================
+rules:
+  - id: FILING_HAS_ACCESSION
+    description: Every filing must have an accession number
+    applies_to: Filing
+    condition: accessionNumber is not null
+    severity: error
+
+  - id: FILING_HAS_DATE
+    description: Every filing must have a filed date
+    applies_to: Filing
+    condition: dateFiled is not null
+    severity: error
+
+  - id: AMENDMENT_CONSISTENCY
+    description: Amendment flags must be consistent
+    applies_to: Filing
+    condition: |
+      (isAmendment = true) implies (amendedAccessionNumber is not null)
+    severity: error
+
+  - id: QUERY_LENGTH
+    description: Queries must not exceed maximum length
+    applies_to: FilingSearchQuery.query
+    condition: length(query) <= 2000
+    severity: error
+
+  - id: SEARCH_LIMIT
+    description: Search results are limited
+    applies_to: searchFilings
+    condition: limit <= 1000
+    severity: error
+
+# =============================================================================
+# QUERIES
+# =============================================================================
+queries:
+  searchFilings:
+    description: Search filings using query language
+    parameters:
+      - name: query
+        type: string
+        required: true
+        constraints:
+          maxLength: 2000
+      - name: save
+        type: boolean
+        default: false
+    returns: FilingSearchResponse
+    errors:
+      - code: INVALID_QUERY
+        condition: Query syntax is invalid
+        message: "Invalid query syntax at position {position}"
+      - code: QUERY_TOO_LONG
+        condition: Query exceeds maximum length
+        message: "Query exceeds maximum length of 2000 characters"
+
+  getFilingById:
+    description: Get filing by internal ID
+    parameters:
+      - name: id
+        type: integer
+        required: true
+        constraints:
+          minimum: 1
+    returns: Filing
+    cacheable: true
+    cache_ttl: 3600
+
+  autocomplete:
+    description: Get autocomplete suggestions for query
+    parameters:
+      - name: query
+        type: string
+        default: ''
+    returns: AutocompleteResult[]
+    cacheable: true
+    cache_ttl: 300
+
+# =============================================================================
+# EVENTS
+# =============================================================================
+events:
+  FilingSearched:
+    description: Emitted when a filing search is performed
+    payload:
+      query: string
+      resultCount: integer
+      timestamp: datetime
+
+  FilingViewed:
+    description: Emitted when a filing is viewed
+    payload:
+      filingId: integer
+      accessionNumber: AccessionNumber
+      timestamp: datetime
+
+  QuerySaved:
+    description: Emitted when a query is saved for sharing
+    payload:
+      query: string
+      tinyString: string
+      timestamp: datetime

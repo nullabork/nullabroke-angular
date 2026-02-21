@@ -13,24 +13,6 @@
                 <span>New Query</span>
               </button>
             </li>
-            <li hlmSidebarMenuItem>
-              <button 
-                hlmSidebarMenuButton 
-                (click)="saveQuery()" 
-                class="hover:bg-[#3c3c3c]"
-                [class.text-[#4ec9b0]]="isDirty()"
-                [class.text-[#cccccc]]="!isDirty()"
-              >
-                <ng-icon hlm name="lucideSave" />
-                <span>Save</span>
-              </button>
-            </li>
-            <li hlmSidebarMenuItem>
-              <button hlmSidebarMenuButton (click)="duplicateQuery()" class="text-[#cccccc] hover:bg-[#3c3c3c]">
-                <ng-icon hlm name="lucideCopy" />
-                <span>Duplicate</span>
-              </button>
-            </li>
           </ul>
         </div>
       </div>
@@ -109,10 +91,10 @@
                       <button
                         [hlmDropdownMenuTrigger]="queryMenu"
                         (click)="$event.stopPropagation()"
-                        class="ml-auto opacity-0 group-hover/item:opacity-100 w-6 h-6 flex items-center justify-center text-[#858585] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-opacity group-data-[collapsible=icon]:hidden"
+                        class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden"
                         title="More actions"
                       >
-                        <ng-icon name="lucideEllipsisVertical" size="sm" />
+                        <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
                       </button>
                       
                       <!-- Dropdown Menu -->

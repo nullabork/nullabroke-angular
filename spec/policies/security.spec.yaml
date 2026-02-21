@@ -1,0 +1,313 @@
+# Security Policies Specification
+# Defines authentication, authorization, and security boundaries
+
+domain: Security
+version: 1.0.0
+description: |
+  Security policies for the Nullabroke application.
+  Defines authentication requirements, authorization rules, and data protection.
+
+# =============================================================================
+# AUTHENTICATION
+# =============================================================================
+authentication:
+  provider: Auth0
+  description: OAuth 2.0 / OpenID Connect authentication via Auth0
+
+  configuration:
+    domain: ${AUTH0_DOMAIN}
+    clientId: ${AUTH0_CLIENT_ID}
+    audience: ${AUTH0_AUDIENCE}
+    redirectUri: ${APP_URL}/callback
+    scope: openid profile email
+
+  flows:
+    - name: Authorization Code with PKCE
+      description: Primary flow for SPA authentication
+      steps:
+        1: Redirect to Auth0 login
+        2: User authenticates
+        3: Auth0 redirects with authorization code
+        4: Exchange code for tokens (with PKCE verifier)
+        5: Store tokens securely
+        6: Attach token to API requests
+
+  tokens:
+    accessToken:
+      type: JWT
+      storage: memory
+      expiry: 3600
+      refresh: true
+      claims:
+        - sub (user ID)
+        - email
+        - permissions
+        - exp (expiration)
+
+    idToken:
+      type: JWT
+      storage: memory
+      use: user identity only
+
+    refreshToken:
+      storage: none
+      description: Handled via Auth0 silent refresh
+
+  session:
+    duration: 24h
+    renewal: silent refresh before expiry
+    logout:
+      - Clear local tokens
+      - Call Auth0 logout endpoint
+      - Redirect to home
+
+# =============================================================================
+# AUTHORIZATION
+# =============================================================================
+authorization:
+  model: RBAC
+  description: Role-Based Access Control
+
+  roles:
+    - name: anonymous
+      description: Unauthenticated users
+      permissions:
+        - filing:search
+        - filing:read
+        - document:read
+        - company:read
+        - formtype:read
+        - tags:read
+
+    - name: user
+      description: Authenticated users
+      inherits: anonymous
+      permissions:
+        - query:save
+        - strings:read
+        - strings:write
+
+    - name: admin
+      description: Administrative users
+      inherits: user
+      permissions:
+        - strings:delete
+        - admin:access
+
+  permissions:
+    # Filing permissions
+    filing:search:
+      description: Search SEC filings
+      endpoints: [GET /api/v1/filing/search, POST /api/v1/filing/search]
+
+    filing:read:
+      description: Read individual filing
+      endpoints: [GET /api/v1/filing/{id}]
+
+    # Document permissions
+    document:read:
+      description: Read SEC documents
+      endpoints:
+        - GET /api/v1/document/{accessionNumber}
+        - GET /api/v1/document/{accessionNumber}/*
+
+    # Company permissions
+    company:read:
+      description: Read company data
+      endpoints:
+        - GET /api/v1/company/*
+
+    # Query permissions
+    query:save:
+      description: Save queries for sharing
+      requires_auth: true
+      endpoints: [GET /api/v1/filing/search?save=true]
+
+    # Strings permissions
+    strings:read:
+      description: Read string values
+      endpoints: [GET /api/v1/strings, GET /api/v1/strings/{key}]
+
+    strings:write:
+      description: Write string values
+      requires_auth: true
+      endpoints: [POST /api/v1/strings/{key}]
+
+# =============================================================================
+# API SECURITY
+# =============================================================================
+apiSecurity:
+  transport:
+    protocol: HTTPS
+    minTlsVersion: '1.2'
+    hsts: true
+    hstsMaxAge: 31536000
+
+  cors:
+    allowedOrigins:
+      - ${APP_URL}
+      - http://localhost:4200
+    allowedMethods: [GET, POST, OPTIONS]
+    allowedHeaders: [Authorization, Content-Type]
+    exposeHeaders: [X-Request-Id]
+    maxAge: 86400
+
+  headers:
+    required:
+      Content-Type: application/json
+    security:
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      X-XSS-Protection: '1; mode=block'
+      Referrer-Policy: strict-origin-when-cross-origin
+      Content-Security-Policy: |
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://*.auth0.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https:;
+        frame-src https://*.auth0.com https://www.sec.gov;
+        connect-src 'self' https://*.auth0.com ${API_URL};
+
+  rateLimit:
+    anonymous:
+      requests: 100
+      window: 60s
+    authenticated:
+      requests: 1000
+      window: 60s
+
+# =============================================================================
+# DATA PROTECTION
+# =============================================================================
+dataProtection:
+  pii:
+    description: No PII is stored in the application
+    handling: |
+      User authentication is handled by Auth0.
+      No user data is stored in the application database.
+
+  secrets:
+    storage: environment variables
+    neverLog:
+      - Authorization header
+      - Tokens
+      - API keys
+    neverExpose:
+      - AUTH0_CLIENT_SECRET
+      - API_KEY
+
+  inputValidation:
+    sanitize:
+      - Query parameters
+      - Path parameters
+      - Request bodies
+    maxLength:
+      query: 2000
+      path: 500
+    encoding: UTF-8
+
+  outputEncoding:
+    html: escape
+    json: standard JSON encoding
+    urls: encodeURIComponent
+
+# =============================================================================
+# BROWSER SECURITY
+# =============================================================================
+browserSecurity:
+  localStorage:
+    allowed:
+      - theme preference
+      - column visibility settings
+      - view mode preference
+    forbidden:
+      - tokens
+      - user credentials
+      - sensitive data
+
+  sessionStorage:
+    allowed:
+      - temporary UI state
+    forbidden:
+      - tokens
+
+  cookies:
+    usage: minimal
+    flags:
+      - HttpOnly (where applicable)
+      - Secure
+      - SameSite=Strict
+
+  iframe:
+    secDocumentViewer:
+      sandbox: allow-same-origin allow-scripts
+      description: Document viewer iframe for SEC filings
+      allowedSources:
+        - ${API_URL}/api/v1/document/*
+        - https://www.sec.gov/*
+
+# =============================================================================
+# AUDIT & LOGGING
+# =============================================================================
+audit:
+  events:
+    - name: authentication_success
+      level: info
+      data: [user_id, timestamp, ip_address]
+
+    - name: authentication_failure
+      level: warn
+      data: [timestamp, ip_address, reason]
+
+    - name: authorization_denied
+      level: warn
+      data: [user_id, resource, permission, timestamp]
+
+    - name: rate_limit_exceeded
+      level: warn
+      data: [ip_address, endpoint, timestamp]
+
+  retention:
+    duration: 90 days
+    storage: application logs
+
+  excluded:
+    - tokens
+    - passwords
+    - authorization headers
+
+# =============================================================================
+# INCIDENT RESPONSE
+# =============================================================================
+incidentResponse:
+  contacts:
+    - type: security
+      email: security@nullabroke.com
+
+  procedures:
+    tokenCompromise:
+      - Revoke affected tokens via Auth0
+      - Force logout affected users
+      - Investigate access logs
+      - Notify affected users
+
+    dataBreachSuspected:
+      - Isolate affected systems
+      - Preserve logs
+      - Investigate scope
+      - Notify stakeholders
+
+# =============================================================================
+# COMPLIANCE
+# =============================================================================
+compliance:
+  standards:
+    - OWASP Top 10
+    - CWE/SANS Top 25
+
+  reviews:
+    frequency: quarterly
+    scope:
+      - Dependency vulnerabilities
+      - Access control review
+      - Security configuration

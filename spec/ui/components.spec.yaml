@@ -1,0 +1,554 @@
+# UI Component Specifications
+# Defines component contracts, inputs, outputs, and behaviors
+
+domain: UI
+version: 1.0.0
+description: |
+  UI component specifications for the Nullabroke Angular application.
+  These specs define component interfaces, state management, and behavior contracts.
+
+# =============================================================================
+# PAGE COMPONENTS
+# =============================================================================
+pages:
+  FilingSearchPage:
+    route: /
+    aliases: ['/:tinyString']
+    description: Main filing search and results page
+    state:
+      query:
+        type: string
+        description: Current search query
+        persistence: url
+      results:
+        type: Filing[]
+        description: Search results
+      isLoading:
+        type: boolean
+        default: false
+      viewMode:
+        type: ViewMode
+        default: list
+        persistence: localStorage
+      visibleColumns:
+        type: string[]
+        persistence: localStorage
+    inputs:
+      tinyString:
+        type: string
+        source: route
+        description: Shared query identifier
+    events:
+      - name: search
+        payload: { query: string }
+      - name: loadMore
+        payload: { cursor: string }
+      - name: columnToggle
+        payload: { column: string, visible: boolean }
+
+  DocumentViewerPage:
+    route: /document/:accessionNumber
+    aliases: ['/document/:accessionNumber/:seq']
+    description: SEC document viewer with sidebars
+    state:
+      document:
+        type: DocumentMeta
+      selectedFile:
+        type: string
+        description: Current file being viewed
+      sidebars:
+        type: SidebarInstance[]
+        description: Stack of open sidebars
+      selectedText:
+        type: string
+        description: Currently selected text in document
+      inferences:
+        type: Inference[]
+        description: Inferences from selected text
+    inputs:
+      accessionNumber:
+        type: AccessionNumber
+        source: route
+        required: true
+      seq:
+        type: string
+        source: route
+        description: File sequence or filename
+    events:
+      - name: textSelected
+        payload: { text: string, position: TextPosition }
+      - name: sidebarOpen
+        payload: { type: SidebarType, value: any }
+      - name: sidebarClose
+        payload: { index: number }
+
+  CompanySearchPage:
+    route: /companies
+    aliases: ['/companies/:query']
+    description: Company search page
+    state:
+      query:
+        type: string
+      results:
+        type: CompanySearchResult[]
+      isLoading:
+        type: boolean
+      selectedCompany:
+        type: Company
+    inputs:
+      query:
+        type: string
+        source: route
+    events:
+      - name: search
+        payload: { query: string }
+      - name: companySelect
+        payload: { cik: CIK }
+
+  HoldingsPage:
+    route: /company/:cik/holdings
+    description: 13F holdings explorer
+    state:
+      company:
+        type: Company
+      filings:
+        type: Filing[]
+        description: Available 13F filings
+      selectedFilings:
+        type: AccessionNumber[]
+        max: 2
+      holdings:
+        type: Holding[]
+      filter:
+        type: HoldingsFilter
+    inputs:
+      cik:
+        type: CIK
+        source: route
+        required: true
+    events:
+      - name: filingSelect
+        payload: { accessionNumber: AccessionNumber }
+      - name: filterChange
+        payload: { filter: HoldingsFilter }
+
+# =============================================================================
+# SHARED COMPONENTS
+# =============================================================================
+components:
+  # ---------------------------------------------------------------------------
+  # Query Builder
+  # ---------------------------------------------------------------------------
+  QueryInput:
+    description: SQL-like query input with autocomplete
+    inputs:
+      value:
+        type: string
+        required: true
+      placeholder:
+        type: string
+        default: "Enter query..."
+      disabled:
+        type: boolean
+        default: false
+    outputs:
+      valueChange:
+        type: string
+      submit:
+        type: void
+      autocomplete:
+        type: { query: string, position: number }
+    behavior:
+      - Syntax highlighting for query language
+      - Autocomplete dropdown on typing
+      - Error highlighting for invalid syntax
+      - Keyboard shortcuts (Ctrl+Enter to submit)
+
+  QueryAutocomplete:
+    description: Autocomplete dropdown for query input
+    inputs:
+      suggestions:
+        type: AutocompleteResult[]
+      visible:
+        type: boolean
+      position:
+        type: { x: number, y: number }
+    outputs:
+      select:
+        type: AutocompleteResult
+      dismiss:
+        type: void
+    behavior:
+      - Arrow key navigation
+      - Enter to select
+      - Escape to dismiss
+      - Category grouping
+
+  # ---------------------------------------------------------------------------
+  # Data Table
+  # ---------------------------------------------------------------------------
+  DataTable:
+    description: Virtual scrolling data table
+    inputs:
+      data:
+        type: any[]
+        required: true
+      columns:
+        type: ColumnDefinition[]
+        required: true
+      rowHeight:
+        type: number
+        default: 40
+      loading:
+        type: boolean
+        default: false
+      emptyMessage:
+        type: string
+        default: "No results"
+    outputs:
+      rowClick:
+        type: { row: any, index: number }
+      rowDoubleClick:
+        type: { row: any, index: number }
+      loadMore:
+        type: void
+      columnResize:
+        type: { column: string, width: number }
+    behavior:
+      - Virtual scrolling for performance
+      - Column resizing
+      - Sortable columns (via column click)
+      - Sticky header
+      - Infinite scroll loading
+
+  ColumnDefinition:
+    properties:
+      key:
+        type: string
+        required: true
+      dataKey:
+        type: string
+        required: true
+      title:
+        type: string
+        required: true
+      width:
+        type: number
+        required: true
+      minWidth:
+        type: number
+        default: 50
+      resizable:
+        type: boolean
+        default: true
+      sortable:
+        type: boolean
+        default: false
+      formatter:
+        type: FormatterType
+      hidden:
+        type: boolean
+        default: false
+      toggleable:
+        type: boolean
+        default: true
+
+  # ---------------------------------------------------------------------------
+  # Sidebar System
+  # ---------------------------------------------------------------------------
+  SidebarContainer:
+    description: Container for stacked sidebars
+    inputs:
+      sidebars:
+        type: SidebarInstance[]
+        required: true
+      maxWidth:
+        type: number
+        default: 400
+    outputs:
+      close:
+        type: number
+        description: Index of sidebar to close
+    behavior:
+      - Horizontal stacking
+      - Close button on each
+      - Back navigation
+      - Scroll overflow
+
+  SidebarInstance:
+    properties:
+      type:
+        type: SidebarType
+        required: true
+      value:
+        type: any
+      meta:
+        type: object
+
+  RootSidebar:
+    description: Primary document context sidebar
+    inputs:
+      documentMeta:
+        type: DocumentMeta
+        required: true
+      inferences:
+        type: Inference[]
+    outputs:
+      navigate:
+        type: { type: SidebarType, value: any }
+    sections:
+      - Filing Info (form type, dates)
+      - Company Info (filer details)
+      - Documents (file list)
+      - Entities (people, orgs, places)
+      - Inferences (from text selection)
+
+  CompanySidebar:
+    description: Company details sidebar
+    inputs:
+      cik:
+        type: CIK
+        required: true
+    outputs:
+      navigate:
+        type: { type: SidebarType, value: any }
+    sections:
+      - Company Info
+      - External Links (Google, Twitter, etc.)
+      - Patents (if available)
+      - Subsidiaries
+      - Recent Filings
+
+  # ---------------------------------------------------------------------------
+  # Document Viewer
+  # ---------------------------------------------------------------------------
+  DocumentFrame:
+    description: SEC document iframe viewer
+    inputs:
+      url:
+        type: string
+        required: true
+      theme:
+        type: Theme
+    outputs:
+      textSelected:
+        type: { text: string, html: string, position: TextPosition }
+      linkClicked:
+        type: { href: string, type: LinkType }
+    behavior:
+      - Iframe sandboxing
+      - PostMessage communication
+      - Text selection capture
+      - Theme injection
+      - Link interception
+
+  TextPosition:
+    properties:
+      start:
+        type: number
+      end:
+        type: number
+      rect:
+        type: DOMRect
+
+  # ---------------------------------------------------------------------------
+  # Common UI
+  # ---------------------------------------------------------------------------
+  Loader:
+    description: Loading indicator
+    inputs:
+      size:
+        type: LoaderSize
+        default: medium
+      message:
+        type: string
+
+  Badge:
+    description: Tag/badge display
+    inputs:
+      text:
+        type: string
+        required: true
+      variant:
+        type: BadgeVariant
+        default: default
+      removable:
+        type: boolean
+        default: false
+    outputs:
+      remove:
+        type: void
+
+  Toolbar:
+    description: Action toolbar
+    inputs:
+      items:
+        type: ToolbarItem[]
+      orientation:
+        type: horizontal | vertical
+        default: horizontal
+
+  ToolbarItem:
+    properties:
+      icon:
+        type: string
+      label:
+        type: string
+      action:
+        type: string
+      disabled:
+        type: boolean
+      active:
+        type: boolean
+      tooltip:
+        type: string
+
+# =============================================================================
+# ENUMERATIONS
+# =============================================================================
+enums:
+  ViewMode:
+    values:
+      - list
+      - thumbnails
+
+  SidebarType:
+    values:
+      - root
+      - filing
+      - company
+      - entity
+      - xbrl
+      - patent
+      - places
+
+  Theme:
+    values:
+      - dark
+      - light
+
+  FormatterType:
+    description: Cell value formatters
+    values:
+      - text        # Plain text with truncation
+      - bytes       # File size (KB, MB, GB)
+      - timestamp   # Date/time formatting
+      - ticker      # Link to ticker search
+      - accession   # Accession number link
+      - tags        # Tag badges
+      - link        # Clickable link
+      - icon        # Icon display
+
+  BadgeVariant:
+    values:
+      - default
+      - primary
+      - success
+      - warning
+      - danger
+      - info
+
+  LoaderSize:
+    values:
+      - small
+      - medium
+      - large
+
+  LinkType:
+    values:
+      - internal
+      - external
+      - document
+      - company
+
+# =============================================================================
+# STATE MANAGEMENT
+# =============================================================================
+stateManagement:
+  strategy: services
+  description: |
+    State is managed via Angular services with BehaviorSubjects.
+    Each domain has a dedicated state service.
+
+  services:
+    FilingStateService:
+      state:
+        query: string
+        results: Filing[]
+        isLoading: boolean
+        error: Error | null
+      actions:
+        - search(query: string): void
+        - loadMore(): void
+        - reset(): void
+
+    DocumentStateService:
+      state:
+        document: DocumentMeta | null
+        sidebars: SidebarInstance[]
+        selectedText: string
+        inferences: Inference[]
+      actions:
+        - loadDocument(accessionNumber: string): void
+        - pushSidebar(type: SidebarType, value: any): void
+        - popSidebar(): void
+        - setSelectedText(text: string): void
+
+    CompanyStateService:
+      state:
+        searchResults: CompanySearchResult[]
+        selectedCompany: Company | null
+        holdings: Holding[]
+        holders: Holder[]
+      actions:
+        - search(query: string): void
+        - selectCompany(cik: number): void
+        - loadHoldings(cik: number, filings: string[]): void
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+accessibility:
+  requirements:
+    - WCAG 2.1 Level AA compliance
+    - Keyboard navigation for all interactive elements
+    - ARIA labels for icons and non-text content
+    - Focus management for modals and sidebars
+    - Color contrast ratio >= 4.5:1
+
+  patterns:
+    - name: Keyboard Navigation
+      description: All interactive elements reachable via Tab
+      implementation: tabindex, focus-visible
+
+    - name: Screen Reader Support
+      description: Meaningful announcements for state changes
+      implementation: aria-live, aria-label, role
+
+    - name: Focus Trap
+      description: Focus contained within modals/sidebars
+      implementation: CDK FocusTrap
+
+# =============================================================================
+# RESPONSIVE BREAKPOINTS
+# =============================================================================
+breakpoints:
+  mobile:
+    max: 640px
+    behavior:
+      - Single column layout
+      - Full-width sidebars
+      - Collapsed toolbar
+
+  tablet:
+    min: 641px
+    max: 1024px
+    behavior:
+      - Two column layout
+      - Collapsible sidebars
+
+  desktop:
+    min: 1025px
+    behavior:
+      - Full multi-column layout
+      - Persistent sidebars

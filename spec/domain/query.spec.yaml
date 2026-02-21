@@ -1,0 +1,376 @@
+# Query Language Specification
+# Detailed specification of the NullabrokeQL query language
+
+domain: QueryLanguage
+version: 1.0.0
+description: |
+  NullabrokeQL is a SQL-like domain-specific language for querying SEC filings.
+  This specification defines the grammar, semantics, and validation rules.
+
+# =============================================================================
+# GRAMMAR (EBNF-like)
+# =============================================================================
+grammar:
+  query: |
+    query       ::= conditions? orderClause? limitClause?
+    conditions  ::= condition (('and' | 'or') condition)*
+    condition   ::= field operator value
+                  | field 'in' '(' valueList ')'
+                  | field 'not' 'in' '(' valueList ')'
+                  | field 'between' value 'and' value
+                  | field 'like' stringValue
+                  | field 'contains' stringValue
+                  | '(' conditions ')'
+                  | 'not' condition
+    
+    orderClause ::= 'order' 'by' field ('asc' | 'desc')?
+    limitClause ::= 'limit' integer
+    
+    field       ::= identifier
+    operator    ::= '=' | '!=' | '<>' | '>' | '<' | '>=' | '<='
+    value       ::= stringValue | numberValue | dateValue | boolValue | 'null'
+    valueList   ::= value (',' value)*
+    
+    stringValue ::= "'" [^']* "'" | '"' [^"]* '"'
+    numberValue ::= '-'? digit+ ('.' digit+)?
+    dateValue   ::= "'" digit{4} '-' digit{2} '-' digit{2} "'"
+    boolValue   ::= 'true' | 'false'
+    
+    identifier  ::= letter (letter | digit | '_')*
+
+# =============================================================================
+# AVAILABLE FIELDS
+# =============================================================================
+fields:
+  # String fields
+  - name: form_type
+    type: string
+    description: SEC form type code
+    operators: ['=', '!=', 'in', 'not in', 'like']
+    indexed: true
+    examples:
+      - value: "'10-K'"
+        description: Annual report
+      - value: "'8-K'"
+        description: Current report
+      - value: "'13F-HR'"
+        description: Institutional holdings
+
+  - name: ticker
+    type: string
+    description: Stock ticker symbol
+    operators: ['=', '!=', 'in', 'not in', 'like']
+    indexed: true
+    case_sensitive: false
+    examples:
+      - value: "'AAPL'"
+      - value: "'msft'"
+        note: Case insensitive
+
+  - name: company_name
+    type: string
+    description: Company conformed name
+    operators: ['=', 'like', 'contains']
+    indexed: true
+    case_sensitive: false
+
+  - name: description
+    type: string
+    description: Filing description
+    operators: ['like', 'contains']
+    indexed: false
+
+  - name: file_number
+    type: string
+    description: SEC file number
+    operators: ['=', '!=', 'like']
+    indexed: true
+
+  - name: relationship
+    type: string
+    description: Filer relationship
+    operators: ['=', '!=', 'in']
+    values: ['Issuer', 'Filer', 'Subject Company']
+
+  # Numeric fields
+  - name: cik
+    type: integer
+    description: Central Index Key
+    operators: ['=', '!=', '>', '<', '>=', '<=', 'in', 'not in']
+    indexed: true
+    constraints:
+      minimum: 1
+      maximum: 9999999999
+
+  - name: size
+    type: integer
+    description: Filing size in bytes
+    operators: ['=', '!=', '>', '<', '>=', '<=']
+    indexed: false
+
+  - name: document_count
+    type: integer
+    description: Number of documents in filing
+    operators: ['=', '!=', '>', '<', '>=', '<=']
+    indexed: false
+
+  # Date fields
+  - name: date_filed
+    type: date
+    description: Date filing was submitted
+    operators: ['=', '!=', '>', '<', '>=', '<=', 'between']
+    indexed: true
+    format: 'YYYY-MM-DD'
+
+  - name: date_published
+    type: datetime
+    description: Date filing was published
+    operators: ['=', '!=', '>', '<', '>=', '<=', 'between']
+    indexed: true
+
+  # Boolean fields
+  - name: is_amendment
+    type: boolean
+    description: Whether filing is an amendment
+    operators: ['=', '!=']
+    indexed: true
+
+  - name: is_amended
+    type: boolean
+    description: Whether filing has been amended
+    operators: ['=', '!=']
+    indexed: true
+
+  - name: no_document
+    type: boolean
+    description: Whether filing has no documents
+    operators: ['=', '!=']
+    indexed: false
+
+  - name: is_empty
+    type: boolean
+    description: Whether filing is empty
+    operators: ['=', '!=']
+    indexed: false
+
+  # Array fields
+  - name: tags
+    type: array
+    element_type: string
+    description: Applied tags
+    operators: ['contains', 'any']
+    indexed: true
+
+  # Special fields
+  - name: snowflake
+    type: string
+    description: Snowflake ID for ordering (guarantees unique sort)
+    operators: ['>', '<', '>=', '<=']
+    indexed: true
+    sortable: true
+
+# =============================================================================
+# OPERATORS
+# =============================================================================
+operators:
+  - symbol: '='
+    name: equals
+    description: Exact match
+    types: [string, integer, date, datetime, boolean]
+
+  - symbol: '!='
+    name: not_equals
+    description: Not equal
+    aliases: ['<>']
+    types: [string, integer, date, datetime, boolean]
+
+  - symbol: '>'
+    name: greater_than
+    description: Greater than
+    types: [integer, date, datetime, string]
+
+  - symbol: '<'
+    name: less_than
+    description: Less than
+    types: [integer, date, datetime, string]
+
+  - symbol: '>='
+    name: greater_than_or_equal
+    description: Greater than or equal
+    types: [integer, date, datetime, string]
+
+  - symbol: '<='
+    name: less_than_or_equal
+    description: Less than or equal
+    types: [integer, date, datetime, string]
+
+  - symbol: 'in'
+    name: in_list
+    description: Value is in list
+    types: [string, integer]
+    syntax: "field IN ('value1', 'value2')"
+
+  - symbol: 'not in'
+    name: not_in_list
+    description: Value is not in list
+    types: [string, integer]
+    syntax: "field NOT IN ('value1', 'value2')"
+
+  - symbol: 'like'
+    name: pattern_match
+    description: SQL LIKE pattern matching
+    types: [string]
+    wildcards:
+      '%': Matches any sequence of characters
+      '_': Matches any single character
+    syntax: "field LIKE 'pattern%'"
+
+  - symbol: 'contains'
+    name: contains
+    description: Field contains substring (case-insensitive)
+    types: [string, array]
+    syntax: "field CONTAINS 'value'"
+
+  - symbol: 'between'
+    name: between
+    description: Value is between two bounds (inclusive)
+    types: [integer, date, datetime]
+    syntax: "field BETWEEN value1 AND value2"
+
+  - symbol: 'any'
+    name: any_match
+    description: Array contains any of the values
+    types: [array]
+    syntax: "field ANY ('value1', 'value2')"
+
+# =============================================================================
+# CLAUSES
+# =============================================================================
+clauses:
+  orderBy:
+    syntax: "ORDER BY field [ASC | DESC]"
+    default_direction: DESC
+    allowed_fields:
+      - date_filed
+      - date_published
+      - snowflake
+      - size
+      - company_name
+    recommendation: |
+      Use 'snowflake desc' for consistent pagination.
+      Snowflake IDs guarantee unique ordering.
+
+  limit:
+    syntax: "LIMIT n"
+    default: 15
+    minimum: 1
+    maximum: 1000
+    recommendation: |
+      Start with small limits and paginate using
+      'snowflake < last_snowflake' for efficiency.
+
+# =============================================================================
+# VALIDATION RULES
+# =============================================================================
+validation:
+  - rule: FIELD_EXISTS
+    description: Field must be a valid field name
+    error: "Unknown field: {field}"
+
+  - rule: OPERATOR_VALID_FOR_TYPE
+    description: Operator must be valid for field type
+    error: "Operator '{operator}' is not valid for field '{field}' of type '{type}'"
+
+  - rule: VALUE_TYPE_MATCHES
+    description: Value type must match field type
+    error: "Invalid value type for field '{field}': expected {expected}, got {actual}"
+
+  - rule: DATE_FORMAT
+    description: Dates must be in YYYY-MM-DD format
+    error: "Invalid date format: '{value}'. Use YYYY-MM-DD"
+
+  - rule: STRING_QUOTED
+    description: String values must be quoted
+    error: "String value must be quoted: {value}"
+
+  - rule: IN_LIST_NOT_EMPTY
+    description: IN list must have at least one value
+    error: "IN clause requires at least one value"
+
+  - rule: BETWEEN_ORDER
+    description: BETWEEN values must be in order
+    error: "BETWEEN requires first value <= second value"
+
+  - rule: LIMIT_BOUNDS
+    description: LIMIT must be between 1 and 1000
+    error: "LIMIT must be between 1 and 1000, got {value}"
+
+# =============================================================================
+# EXAMPLES
+# =============================================================================
+examples:
+  basic:
+    - query: "form_type = '10-K'"
+      description: Find all annual reports
+
+    - query: "ticker = 'AAPL'"
+      description: Find all Apple filings
+
+    - query: "cik = 320193"
+      description: Find filings by CIK
+
+  compound:
+    - query: "form_type = '10-K' and ticker = 'AAPL'"
+      description: Apple annual reports
+
+    - query: "form_type in ('10-K', '10-Q') and date_filed >= '2024-01-01'"
+      description: Recent annual and quarterly reports
+
+    - query: "(form_type = '8-K' or form_type = '6-K') and ticker = 'MSFT'"
+      description: Microsoft current reports
+
+  pattern:
+    - query: "company_name like '%Bank%'"
+      description: Companies with "Bank" in name
+
+    - query: "form_type like '10-%'"
+      description: All 10-series forms
+
+  sorted:
+    - query: "form_type = '8-K' order by date_filed desc limit 50"
+      description: Latest 50 8-K filings
+
+    - query: "ticker in ('AAPL', 'MSFT', 'GOOGL') order by snowflake desc limit 100"
+      description: Latest filings from tech giants
+
+  pagination:
+    - query: "form_type = '10-K' and snowflake < '01234567890' order by snowflake desc limit 15"
+      description: Next page of results (using snowflake cursor)
+
+# =============================================================================
+# ERROR MESSAGES
+# =============================================================================
+errors:
+  - code: SYNTAX_ERROR
+    template: "Syntax error at position {position}: {message}"
+
+  - code: UNKNOWN_FIELD
+    template: "Unknown field '{field}'. Did you mean '{suggestion}'?"
+
+  - code: INVALID_OPERATOR
+    template: "Invalid operator '{operator}' for field '{field}'"
+
+  - code: TYPE_MISMATCH
+    template: "Type mismatch: field '{field}' expects {expected}, got {actual}"
+
+  - code: UNCLOSED_STRING
+    template: "Unclosed string starting at position {position}"
+
+  - code: UNCLOSED_PARENTHESIS
+    template: "Unclosed parenthesis at position {position}"
+
+  - code: EMPTY_IN_LIST
+    template: "IN clause requires at least one value"
+
+  - code: INVALID_DATE
+    template: "Invalid date '{value}'. Use format YYYY-MM-DD"

@@ -9,7 +9,6 @@ import {
   lucideSearch,
   lucideLoader2,
   lucideFile,
-  lucideSave,
   lucidePlus,
   lucideCopy,
   lucideAlertCircle,
@@ -59,7 +58,6 @@ import { QueryParametersComponent } from '../../components/query-builder';
       lucideSearch,
       lucideLoader2,
       lucideFile,
-      lucideSave,
       lucidePlus,
       lucideCopy,
       lucideAlertCircle,
@@ -97,7 +95,6 @@ export class FilingSearchComponent {
   savedQueriesEntries = computed(() => Object.entries(this.savedQueries()));
   hasSavedQueries = computed(() => this.savedQueriesEntries().length > 0);
   currentGuid = this.savedQueriesService.currentGuid;
-  isDirty = this.savedQueriesService.isDirty;
 
   // Query parameters state
   hasParameters = computed(() => this.savedQueriesService.currentParameters().length > 0);
@@ -115,16 +112,13 @@ export class FilingSearchComponent {
   deleteConfirmGuid = signal<string | null>(null);
 
   constructor() {
-    // Initialize query control from service state or use default
+    // Initialize query control from service state
     const currentQuery = this.savedQueriesService.currentQuery();
     if (currentQuery) {
-      this.queryControl.setValue(currentQuery);
-    } else {
-      this.queryControl.setValue("form_type = '8-K' order by snowflake desc limit 50");
-      this.savedQueriesService.setQueryText(this.queryControl.value);
+      this.queryControl.setValue(currentQuery, { emitEvent: false });
     }
 
-    // Sync control changes → service
+    // Sync control changes → service (auto-saves via debounce)
     this.queryControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(val => {
@@ -188,15 +182,7 @@ export class FilingSearchComponent {
   // Saved Queries Actions
   newQuery() {
     this.savedQueriesService.newQuery();
-    this.queryControl.setValue('');
-  }
-
-  duplicateQuery() {
-    this.savedQueriesService.duplicate();
-  }
-
-  saveQuery() {
-    this.savedQueriesService.save();
+    this.queryControl.setValue('', { emitEvent: false });
   }
 
   selectSavedQuery(guid: string) {
@@ -212,6 +198,8 @@ export class FilingSearchComponent {
   // Context Menu Actions
   onDuplicateQuery(guid: string) {
     this.savedQueriesService.duplicateQuery(guid);
+    // Sync the query control with the newly selected duplicate
+    this.queryControl.setValue(this.savedQueriesService.currentQuery(), { emitEvent: false });
   }
 
   onDeleteQuery(guid: string) {

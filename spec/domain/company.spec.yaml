@@ -1,0 +1,373 @@
+# Company Domain Specification
+# Defines the Company aggregate and related entities
+
+domain: Company
+version: 1.0.0
+description: |
+  The Company domain represents SEC-registered entities, their relationships,
+  and institutional investment data (13F holdings).
+
+# =============================================================================
+# ENTITIES
+# =============================================================================
+entities:
+  Company:
+    description: An SEC-registered company identified by CIK
+    identifier: cik
+    properties:
+      cik:
+        type: CIK
+        required: true
+        immutable: true
+        description: Central Index Key - unique SEC identifier
+      name:
+        type: string
+        required: true
+        constraints:
+          minLength: 1
+          maxLength: 500
+      ticker:
+        type: Ticker
+        description: Primary stock ticker symbol
+      sic:
+        type: SICCode
+        description: Standard Industrial Classification
+      sicDescription:
+        type: string
+      fiscalYearEnd:
+        type: string
+        constraints:
+          pattern: '^\d{4}$'
+        description: MMDD format
+      stateOfIncorporation:
+        type: StateCode
+      businessAddress:
+        type: Address
+      mailingAddress:
+        type: Address
+
+  Address:
+    description: Physical or mailing address
+    properties:
+      street1:
+        type: string
+        constraints:
+          maxLength: 200
+      street2:
+        type: string
+        constraints:
+          maxLength: 200
+      city:
+        type: string
+        constraints:
+          maxLength: 100
+      stateOrCountry:
+        type: string
+        constraints:
+          maxLength: 50
+      zipCode:
+        type: ZipCode
+
+  Holding:
+    description: A security position held by an institutional investor
+    properties:
+      cusip:
+        type: CUSIP
+        required: true
+      issuerName:
+        type: string
+        required: true
+      titleOfClass:
+        type: string
+      value:
+        type: Money
+        description: Market value (in thousands)
+      shares:
+        type: integer
+        constraints:
+          minimum: 0
+      sharesPrnAmt:
+        type: ShareType
+      investmentDiscretion:
+        type: DiscretionType
+      votingAuthority:
+        type: VotingAuthority
+
+  VotingAuthority:
+    description: Voting authority breakdown for a holding
+    properties:
+      sole:
+        type: integer
+        constraints:
+          minimum: 0
+      shared:
+        type: integer
+        constraints:
+          minimum: 0
+      none:
+        type: integer
+        constraints:
+          minimum: 0
+
+  Holder:
+    description: An institutional holder of a company's securities
+    properties:
+      cik:
+        type: CIK
+        required: true
+      filerName:
+        type: string
+        required: true
+      shares:
+        type: integer
+      value:
+        type: Money
+      changeInShares:
+        type: integer
+        description: Change from previous period
+      changeInValue:
+        type: Money
+      percentOfPortfolio:
+        type: Percentage
+
+  HolderOvertime:
+    description: Historical holder statistics for a period
+    properties:
+      period:
+        type: date
+        required: true
+      totalHolders:
+        type: integer
+        constraints:
+          minimum: 0
+      totalShares:
+        type: integer
+        constraints:
+          minimum: 0
+      totalValue:
+        type: Money
+
+  Subsidiary:
+    description: A subsidiary of a company
+    properties:
+      name:
+        type: string
+        required: true
+      jurisdiction:
+        type: string
+        description: State or country of incorporation
+
+# =============================================================================
+# VALUE OBJECTS (Immutable types with validation)
+# =============================================================================
+valueObjects:
+  CIK:
+    type: integer
+    description: Central Index Key - SEC company identifier
+    constraints:
+      minimum: 1
+      maximum: 9999999999
+    format: '%010d'
+    examples:
+      - 320193    # Apple
+      - 789019    # Microsoft
+      - 1018724   # Amazon
+
+  Ticker:
+    type: string
+    description: Stock ticker symbol
+    constraints:
+      pattern: '^[A-Z]{1,5}$'
+    examples:
+      - AAPL
+      - MSFT
+      - GOOGL
+
+  SICCode:
+    type: string
+    description: Standard Industrial Classification code
+    constraints:
+      pattern: '^\d{4}$'
+    examples:
+      - '3571'  # Electronic Computers
+      - '7372'  # Prepackaged Software
+
+  StateCode:
+    type: string
+    description: US state or country code
+    constraints:
+      maxLength: 2
+    examples:
+      - 'CA'
+      - 'DE'
+      - 'NY'
+
+  ZipCode:
+    type: string
+    description: US ZIP code
+    constraints:
+      pattern: '^\d{5}(-\d{4})?$'
+    examples:
+      - '95014'
+      - '10001-1234'
+
+  CUSIP:
+    type: string
+    description: Committee on Uniform Securities Identification Procedures identifier
+    constraints:
+      pattern: '^[A-Z0-9]{9}$'
+    examples:
+      - '037833100'  # Apple
+      - '594918104'  # Microsoft
+
+  Money:
+    type: number
+    description: Monetary value
+    constraints:
+      minimum: 0
+    precision: 2
+
+  Percentage:
+    type: number
+    description: Percentage value (0-100)
+    constraints:
+      minimum: 0
+      maximum: 100
+    precision: 4
+
+# =============================================================================
+# ENUMERATIONS
+# =============================================================================
+enums:
+  ShareType:
+    description: Type of shares held
+    values:
+      - SH    # Shares
+      - PRN   # Principal Amount
+
+  DiscretionType:
+    description: Investment discretion type
+    values:
+      - SOLE    # Sole discretion
+      - SHARED  # Shared discretion
+      - NONE    # No discretion
+      - DFND    # Defined
+      - OTR     # Other
+
+# =============================================================================
+# BUSINESS RULES
+# =============================================================================
+rules:
+  - id: CIK_REQUIRED_FOR_COMPANY
+    description: Every company must have a valid CIK
+    applies_to: Company
+    condition: cik is not null and cik > 0
+    severity: error
+
+  - id: TICKER_FORMAT
+    description: Ticker symbols must be uppercase letters only
+    applies_to: Company.ticker
+    condition: ticker matches '^[A-Z]{1,5}$'
+    severity: error
+
+  - id: HOLDING_VALUE_CONSISTENCY
+    description: Holdings with shares must have non-negative value
+    applies_to: Holding
+    condition: shares > 0 implies value >= 0
+    severity: warning
+
+  - id: PERCENTAGE_BOUNDS
+    description: Portfolio percentage must be between 0 and 100
+    applies_to: Holder.percentOfPortfolio
+    condition: percentOfPortfolio >= 0 and percentOfPortfolio <= 100
+    severity: error
+
+# =============================================================================
+# QUERIES (Read Operations)
+# =============================================================================
+queries:
+  getCompanyByCik:
+    description: Retrieve company by CIK
+    parameters:
+      - name: cik
+        type: CIK
+        required: true
+    returns: Company
+    cacheable: true
+    cache_ttl: 3600
+
+  searchCompanies:
+    description: Search companies by name or ticker
+    parameters:
+      - name: query
+        type: string
+        required: true
+        constraints:
+          minLength: 1
+          maxLength: 200
+    returns: CompanySearchResult[]
+    cacheable: true
+    cache_ttl: 300
+
+  getHoldings:
+    description: Get 13F holdings for an institutional investor
+    parameters:
+      - name: cik
+        type: CIK
+        required: true
+      - name: accessionNumber1
+        type: AccessionNumber
+      - name: accessionNumber2
+        type: AccessionNumber
+      - name: limit
+        type: integer
+        default: 5000
+        constraints:
+          minimum: 1
+          maximum: 10000
+    returns: Holding[]
+
+  getHolders:
+    description: Get institutional holders of a company
+    parameters:
+      - name: cik
+        type: CIK
+        required: true
+      - name: current
+        type: datetime
+      - name: previous
+        type: datetime
+      - name: limit
+        type: integer
+        default: 100
+        constraints:
+          minimum: 1
+          maximum: 1000
+    returns: Holder[]
+
+  getSubsidiaries:
+    description: Get company subsidiaries
+    parameters:
+      - name: cik
+        type: CIK
+        required: true
+    returns: Subsidiary[]
+    cacheable: true
+    cache_ttl: 86400
+
+# =============================================================================
+# EVENTS (For future event-driven architecture)
+# =============================================================================
+events:
+  CompanyViewed:
+    description: Emitted when a company is viewed
+    payload:
+      cik: CIK
+      timestamp: datetime
+
+  HoldingsCompared:
+    description: Emitted when holdings are compared between periods
+    payload:
+      cik: CIK
+      period1: AccessionNumber
+      period2: AccessionNumber

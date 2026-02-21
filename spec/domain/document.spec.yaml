@@ -1,0 +1,317 @@
+# Document Domain Specification
+# Defines SEC document structure and retrieval
+
+domain: Document
+version: 1.0.0
+description: |
+  The Document domain represents SEC filing documents, their metadata,
+  parsed content, and associated files.
+
+# =============================================================================
+# ENTITIES
+# =============================================================================
+entities:
+  Document:
+    description: An SEC filing document identified by accession number
+    identifier: accessionNumber
+    properties:
+      accessionNumber:
+        type: AccessionNumber
+        required: true
+        immutable: true
+      formType:
+        type: FormType
+      filedDate:
+        type: date
+      acceptedDate:
+        type: datetime
+      documents:
+        type: DocumentFile[]
+        description: List of files in the submission
+
+  DocumentFile:
+    description: A file within an SEC submission
+    properties:
+      sequence:
+        type: integer
+        constraints:
+          minimum: 1
+        description: File sequence number
+      description:
+        type: string
+      filename:
+        type: string
+        required: true
+      type:
+        type: string
+        description: File MIME type or SEC type
+      size:
+        type: integer
+        constraints:
+          minimum: 0
+        description: File size in bytes
+      url:
+        type: uri
+        description: Direct URL to file
+
+  DocumentMeta:
+    description: Extended metadata for an SEC document
+    identifier: accessionNumber
+    properties:
+      accessionNumber:
+        type: AccessionNumber
+        required: true
+      summary:
+        type: string
+        description: AI-generated summary
+      formType:
+        type: FormType
+      fileNumber:
+        type: string
+      filmNumber:
+        type: string
+      filedDate:
+        type: date
+      acceptedDate:
+        type: datetime
+      periodOfReport:
+        type: date
+        description: Period covered by the filing
+      filerCik:
+        type: CIK
+      filerName:
+        type: string
+      primaryDocument:
+        type: string
+        description: Primary document filename
+      primaryDocumentDescription:
+        type: string
+      documents:
+        type: DocumentFile[]
+      filingHeader:
+        type: FilingHeader
+      hasXbrl:
+        type: boolean
+        description: Whether filing contains XBRL data
+
+  FilingHeader:
+    description: Header information from SEC filing
+    properties:
+      accessionNumber:
+        type: AccessionNumber
+      conformedSubmissionType:
+        type: string
+      publicDocumentCount:
+        type: integer
+        constraints:
+          minimum: 0
+      filedAsOfDate:
+        type: date
+      acceptanceDateTime:
+        type: datetime
+      itemInformation:
+        type: string[]
+        description: Item information entries (e.g., "Item 2.02")
+
+  ParsedDocument:
+    description: Document with extracted structure
+    identifier: accessionNumber
+    properties:
+      accessionNumber:
+        type: AccessionNumber
+        required: true
+      sections:
+        type: DocumentSection[]
+      tables:
+        type: DocumentTable[]
+
+  DocumentSection:
+    description: A section within a parsed document
+    properties:
+      title:
+        type: string
+      content:
+        type: string
+      level:
+        type: integer
+        constraints:
+          minimum: 1
+          maximum: 6
+        description: Heading level (1-6)
+
+  DocumentTable:
+    description: A table extracted from a document
+    properties:
+      title:
+        type: string
+      headers:
+        type: string[]
+      rows:
+        type: string[][]
+
+# =============================================================================
+# VALUE OBJECTS
+# =============================================================================
+valueObjects:
+  AccessionNumber:
+    type: string
+    description: SEC accession number (unique filing identifier)
+    constraints:
+      pattern: '^\d{10}-\d{2}-\d{6}$'
+    format: 'XXXXXXXXXX-XX-XXXXXX'
+    examples:
+      - '0001193125-24-012345'
+      - '0000950170-24-001234'
+    validation:
+      - The first 10 digits are the filer's CIK (padded with zeros)
+      - The next 2 digits are the year
+      - The last 6 digits are a sequence number
+
+  FormType:
+    type: string
+    description: SEC form type code
+    examples:
+      - '10-K'    # Annual report
+      - '10-Q'    # Quarterly report
+      - '8-K'     # Current report
+      - '13F-HR'  # Institutional holdings
+      - 'DEF 14A' # Proxy statement
+      - 'S-1'     # Registration statement
+
+# =============================================================================
+# BUSINESS RULES
+# =============================================================================
+rules:
+  - id: ACCESSION_NUMBER_FORMAT
+    description: Accession numbers must match SEC format
+    applies_to: Document.accessionNumber
+    condition: accessionNumber matches '^\d{10}-\d{2}-\d{6}$'
+    severity: error
+
+  - id: DOCUMENT_HAS_PRIMARY
+    description: Documents should have a primary document
+    applies_to: DocumentMeta
+    condition: primaryDocument is not null
+    severity: warning
+
+  - id: FILE_SEQUENCE_UNIQUE
+    description: File sequences must be unique within a document
+    applies_to: Document.documents
+    condition: all sequences are unique
+    severity: error
+
+  - id: SECTION_LEVEL_HIERARCHY
+    description: Section levels should follow hierarchy
+    applies_to: ParsedDocument.sections
+    condition: no section has level > parent.level + 1
+    severity: warning
+
+# =============================================================================
+# QUERIES
+# =============================================================================
+queries:
+  getDocument:
+    description: Get document by accession number
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+    returns: Document
+    cacheable: true
+    cache_ttl: 86400
+
+  getDocumentMeta:
+    description: Get extended document metadata
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+    returns: DocumentMeta
+    cacheable: true
+    cache_ttl: 86400
+
+  getParsedDocument:
+    description: Get parsed document structure
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+    returns: ParsedDocument
+    cacheable: true
+    cache_ttl: 86400
+
+  getDocumentFile:
+    description: Get specific file content
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+      - name: filenameOrSequence
+        type: string
+        required: true
+    returns: string
+    content_type: text/html | application/xml
+
+  getPrimaryDocument:
+    description: Get primary document content
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+    returns: string
+    content_type: text/html
+
+  getStrippedDocument:
+    description: Get document with styling removed
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+      - name: filenameOrSequence
+        type: string
+        required: true
+    returns: string
+    content_type: text/html
+
+  getDocumentImages:
+    description: Get document rendered as images
+    parameters:
+      - name: accessionNumber
+        type: AccessionNumber
+        required: true
+      - name: filenameOrSequence
+        type: string
+        required: true
+      - name: width
+        type: integer
+        default: 0
+        constraints:
+          minimum: 100
+          maximum: 4000
+      - name: page
+        type: integer
+        default: 1
+        constraints:
+          minimum: 1
+    returns: binary
+    content_type: image/png
+
+# =============================================================================
+# EVENTS
+# =============================================================================
+events:
+  DocumentViewed:
+    description: Emitted when a document is viewed
+    payload:
+      accessionNumber: AccessionNumber
+      formType: FormType
+      timestamp: datetime
+
+  TextSelected:
+    description: Emitted when text is selected in document viewer
+    payload:
+      accessionNumber: AccessionNumber
+      selectedText: string
+      position:
+        start: integer
+        end: integer

@@ -1,0 +1,523 @@
+# Validation Rules Specification
+# Cross-cutting validation rules for data integrity
+
+domain: Validation
+version: 1.0.0
+description: |
+  Validation rules that apply across the application.
+  These rules are enforced at multiple layers:
+  - Client-side (immediate feedback)
+  - API gateway (request validation)
+  - Service layer (business rules)
+  - Database (constraints)
+
+# =============================================================================
+# TYPE VALIDATORS
+# =============================================================================
+typeValidators:
+  # ---------------------------------------------------------------------------
+  # SEC-Specific Types
+  # ---------------------------------------------------------------------------
+  CIK:
+    type: integer
+    description: Central Index Key - SEC company identifier
+    rules:
+      - name: range
+        min: 1
+        max: 9999999999
+      - name: format
+        pattern: '^\d{1,10}$'
+    errorMessages:
+      range: "CIK must be between 1 and 9999999999"
+      format: "CIK must be a numeric value"
+    examples:
+      valid: [320193, 789019, 1018724]
+      invalid: [0, -1, 10000000000, "abc"]
+
+  AccessionNumber:
+    type: string
+    description: SEC accession number format
+    rules:
+      - name: pattern
+        regex: '^\d{10}-\d{2}-\d{6}$'
+      - name: length
+        exact: 20
+    errorMessages:
+      pattern: "Accession number must be in format XXXXXXXXXX-XX-XXXXXX"
+      length: "Accession number must be exactly 20 characters"
+    examples:
+      valid: ["0001193125-24-012345", "0000950170-24-001234"]
+      invalid: ["1193125-24-12345", "0001193125-24-01234567", "abc"]
+
+  Ticker:
+    type: string
+    description: Stock ticker symbol
+    rules:
+      - name: pattern
+        regex: '^[A-Z]{1,5}$'
+      - name: length
+        min: 1
+        max: 5
+    transform:
+      - uppercase
+    errorMessages:
+      pattern: "Ticker must be 1-5 uppercase letters"
+    examples:
+      valid: ["AAPL", "MSFT", "A", "GOOGL"]
+      invalid: ["TOOLONG", "123", "aapl", ""]
+
+  CUSIP:
+    type: string
+    description: CUSIP identifier
+    rules:
+      - name: pattern
+        regex: '^[A-Z0-9]{9}$'
+      - name: length
+        exact: 9
+    transform:
+      - uppercase
+    errorMessages:
+      pattern: "CUSIP must be exactly 9 alphanumeric characters"
+    examples:
+      valid: ["037833100", "594918104"]
+      invalid: ["03783310", "0378331001", "abc"]
+
+  SICCode:
+    type: string
+    description: Standard Industrial Classification code
+    rules:
+      - name: pattern
+        regex: '^\d{4}$'
+      - name: length
+        exact: 4
+    errorMessages:
+      pattern: "SIC code must be exactly 4 digits"
+    examples:
+      valid: ["3571", "7372", "6798"]
+      invalid: ["357", "35710", "ABCD"]
+
+  # ---------------------------------------------------------------------------
+  # Common Types
+  # ---------------------------------------------------------------------------
+  Email:
+    type: string
+    rules:
+      - name: pattern
+        regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+      - name: length
+        max: 254
+    transform:
+      - lowercase
+      - trim
+    errorMessages:
+      pattern: "Invalid email address format"
+
+  URL:
+    type: string
+    rules:
+      - name: pattern
+        regex: '^https?:\/\/.+'
+      - name: length
+        max: 2048
+    errorMessages:
+      pattern: "URL must start with http:// or https://"
+
+  ZipCode:
+    type: string
+    description: US ZIP code
+    rules:
+      - name: pattern
+        regex: '^\d{5}(-\d{4})?$'
+    errorMessages:
+      pattern: "ZIP code must be 5 digits or 5+4 format"
+    examples:
+      valid: ["95014", "10001-1234"]
+      invalid: ["9501", "950141", "ABCDE"]
+
+  Date:
+    type: string
+    description: ISO 8601 date
+    rules:
+      - name: pattern
+        regex: '^\d{4}-\d{2}-\d{2}$'
+      - name: validDate
+        description: Must be a valid calendar date
+    errorMessages:
+      pattern: "Date must be in YYYY-MM-DD format"
+      validDate: "Invalid date"
+    examples:
+      valid: ["2024-01-15", "2023-12-31"]
+      invalid: ["2024-13-01", "2024-02-30", "01-15-2024"]
+
+  DateTime:
+    type: string
+    description: ISO 8601 datetime
+    rules:
+      - name: pattern
+        regex: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$'
+    errorMessages:
+      pattern: "DateTime must be in ISO 8601 format"
+
+  Percentage:
+    type: number
+    rules:
+      - name: range
+        min: 0
+        max: 100
+    errorMessages:
+      range: "Percentage must be between 0 and 100"
+
+  PositiveInteger:
+    type: integer
+    rules:
+      - name: min
+        value: 1
+    errorMessages:
+      min: "Value must be a positive integer"
+
+  NonNegativeInteger:
+    type: integer
+    rules:
+      - name: min
+        value: 0
+    errorMessages:
+      min: "Value cannot be negative"
+
+# =============================================================================
+# REQUEST VALIDATORS
+# =============================================================================
+requestValidators:
+  searchFilings:
+    parameters:
+      query:
+        type: string
+        required: false
+        rules:
+          - name: length
+            max: 2000
+          - name: noInjection
+            description: Prevent SQL/NoSQL injection patterns
+        errorMessages:
+          length: "Query exceeds maximum length of 2000 characters"
+
+      save:
+        type: boolean
+        required: false
+        default: false
+
+  getCompanyByCik:
+    parameters:
+      cik:
+        type: CIK
+        required: true
+
+  getCompanyHoldings:
+    parameters:
+      cik:
+        type: CIK
+        required: true
+      accessionNumber1:
+        type: AccessionNumber
+        required: false
+      accessionNumber2:
+        type: AccessionNumber
+        required: false
+      limit:
+        type: integer
+        required: false
+        default: 5000
+        rules:
+          - name: range
+            min: 1
+            max: 10000
+
+  getCompanyHolders:
+    parameters:
+      cik:
+        type: CIK
+        required: true
+      current:
+        type: DateTime
+        required: false
+      previous:
+        type: DateTime
+        required: false
+      limit:
+        type: integer
+        required: false
+        default: 100
+        rules:
+          - name: range
+            min: 1
+            max: 1000
+
+  searchCompanies:
+    parameters:
+      query:
+        type: string
+        required: true
+        rules:
+          - name: length
+            min: 1
+            max: 200
+        transform:
+          - trim
+
+  getDocumentImages:
+    parameters:
+      accessionNumber:
+        type: AccessionNumber
+        required: true
+      filenameOrSequence:
+        type: string
+        required: true
+      width:
+        type: integer
+        required: false
+        default: 0
+        rules:
+          - name: range
+            min: 0
+            max: 4000
+      page:
+        type: integer
+        required: false
+        default: 1
+        rules:
+          - name: min
+            value: 1
+
+# =============================================================================
+# BUSINESS RULES
+# =============================================================================
+businessRules:
+  # ---------------------------------------------------------------------------
+  # Company Rules
+  # ---------------------------------------------------------------------------
+  - id: COMPANY_CIK_REQUIRED
+    entity: Company
+    description: Every company must have a valid CIK
+    condition: cik != null && cik > 0
+    severity: error
+    message: "Company must have a valid CIK"
+
+  - id: COMPANY_NAME_REQUIRED
+    entity: Company
+    description: Every company must have a name
+    condition: name != null && name.trim().length > 0
+    severity: error
+    message: "Company name is required"
+
+  - id: TICKER_UPPERCASE
+    entity: Company
+    description: Ticker symbols should be uppercase
+    condition: ticker == null || ticker == ticker.toUpperCase()
+    severity: warning
+    autoFix: uppercase
+
+  # ---------------------------------------------------------------------------
+  # Document Rules
+  # ---------------------------------------------------------------------------
+  - id: DOCUMENT_ACCESSION_REQUIRED
+    entity: Document
+    description: Documents must have an accession number
+    condition: accessionNumber != null
+    severity: error
+    message: "Document must have an accession number"
+
+  - id: DOCUMENT_DATE_CONSISTENCY
+    entity: Document
+    description: Filed date should be before or equal to accepted date
+    condition: filedDate == null || acceptedDate == null || filedDate <= acceptedDate
+    severity: warning
+    message: "Filed date should not be after accepted date"
+
+  # ---------------------------------------------------------------------------
+  # Filing Rules
+  # ---------------------------------------------------------------------------
+  - id: FILING_HAS_FORM_TYPE
+    entity: Filing
+    description: Filings must have a form type
+    condition: formType != null && formType.trim().length > 0
+    severity: error
+    message: "Filing must have a form type"
+
+  - id: FILING_DATE_NOT_FUTURE
+    entity: Filing
+    description: Filing date should not be in the future
+    condition: dateFiled <= today()
+    severity: warning
+    message: "Filing date should not be in the future"
+
+  - id: AMENDMENT_HAS_ORIGINAL
+    entity: Filing
+    description: Amendments must reference original filing
+    condition: !isAmendment || amendedAccessionNumber != null
+    severity: error
+    message: "Amendment must reference original accession number"
+
+  # ---------------------------------------------------------------------------
+  # Holdings Rules
+  # ---------------------------------------------------------------------------
+  - id: HOLDING_POSITIVE_VALUE
+    entity: Holding
+    description: Holdings with shares should have non-negative value
+    condition: shares == null || shares == 0 || value >= 0
+    severity: warning
+    message: "Holding value should not be negative"
+
+  - id: HOLDER_PERCENTAGE_BOUNDS
+    entity: Holder
+    description: Portfolio percentage must be valid
+    condition: percentOfPortfolio == null || (percentOfPortfolio >= 0 && percentOfPortfolio <= 100)
+    severity: error
+    message: "Portfolio percentage must be between 0 and 100"
+
+  # ---------------------------------------------------------------------------
+  # Query Rules
+  # ---------------------------------------------------------------------------
+  - id: QUERY_LIMIT_BOUNDS
+    operation: searchFilings
+    description: Search limit must be within bounds
+    condition: limit >= 1 && limit <= 1000
+    severity: error
+    message: "Limit must be between 1 and 1000"
+
+  - id: QUERY_NOT_EMPTY_IF_SAVE
+    operation: searchFilings
+    description: Cannot save empty query
+    condition: !save || (query != null && query.trim().length > 0)
+    severity: error
+    message: "Cannot save an empty query"
+
+# =============================================================================
+# SANITIZATION RULES
+# =============================================================================
+sanitization:
+  html:
+    description: HTML content sanitization
+    rules:
+      - name: stripScripts
+        description: Remove script tags
+      - name: stripEvents
+        description: Remove on* event handlers
+      - name: stripIframes
+        description: Remove iframe tags (except allowed)
+      - name: sanitizeHrefs
+        description: Validate href attributes
+    allowed:
+      tags: [p, div, span, a, b, i, u, em, strong, br, table, tr, td, th, thead, tbody, ul, ol, li, h1, h2, h3, h4, h5, h6]
+      attributes:
+        a: [href, title]
+        table: [class]
+        td: [colspan, rowspan]
+        th: [colspan, rowspan]
+
+  text:
+    description: Plain text sanitization
+    rules:
+      - name: trim
+        description: Remove leading/trailing whitespace
+      - name: normalizeWhitespace
+        description: Collapse multiple spaces
+      - name: removeControlChars
+        description: Remove non-printable characters
+
+  sql:
+    description: Query parameter sanitization
+    rules:
+      - name: escapeQuotes
+        description: Escape single quotes
+      - name: preventUnion
+        description: Block UNION keywords
+      - name: preventComment
+        description: Block -- comments
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+errorHandling:
+  validationErrors:
+    format:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field that failed validation
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        value:
+          type: any
+          description: The invalid value (sanitized)
+
+    aggregation: |
+      Multiple validation errors are collected and returned together.
+      Response includes all errors, not just the first one.
+
+    httpStatus:
+      validation: 400
+      authorization: 403
+      notFound: 404
+      serverError: 500
+
+  errorCodes:
+    REQUIRED: Field is required
+    INVALID_FORMAT: Field format is invalid
+    OUT_OF_RANGE: Value is outside allowed range
+    TOO_LONG: Value exceeds maximum length
+    TOO_SHORT: Value is below minimum length
+    INVALID_TYPE: Wrong data type
+    INVALID_ENUM: Value not in allowed list
+    INVALID_DATE: Invalid date value
+    INVALID_PATTERN: Value does not match pattern
+    DUPLICATE: Value already exists
+    NOT_FOUND: Referenced entity not found
+    UNAUTHORIZED: Not authorized for this operation
+
+# =============================================================================
+# VALIDATION LAYERS
+# =============================================================================
+validationLayers:
+  client:
+    description: Browser-side validation for immediate feedback
+    implementation: Angular Reactive Forms
+    timing: onChange, onBlur, onSubmit
+    scope:
+      - Required fields
+      - Format validation
+      - Length constraints
+      - Pattern matching
+
+  api:
+    description: API gateway request validation
+    implementation: OpenAPI schema validation
+    timing: Before handler execution
+    scope:
+      - Schema validation
+      - Type checking
+      - Required parameters
+      - Enum validation
+
+  service:
+    description: Business rule validation
+    implementation: Domain validators
+    timing: During processing
+    scope:
+      - Business rules
+      - Cross-field validation
+      - State-dependent rules
+      - Authorization checks
+
+  database:
+    description: Database-level constraints
+    implementation: SQL constraints
+    timing: On write
+    scope:
+      - Unique constraints
+      - Foreign key integrity
+      - Not null constraints
+      - Check constraints

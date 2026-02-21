@@ -139,17 +139,18 @@
         </div>
       } @else if (iframeSrc()) {
         <!-- Document Frame Container -->
-        <div class="flex-1 overflow-auto bg-white">
+        <div class="flex-1 relative overflow-auto bg-white">
           <!-- Loading Overlay -->
           @if (iframeLoading()) {
-            <div class="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+            <div class="absolute inset-0 flex items-center justify-center bg-white z-10">
               <ng-icon name="lucideLoader2" class="text-[32px] text-[#858585] animate-spin" />
             </div>
           }
           
-          <!-- Iframe - allow scrolling for reliability -->
+          <!-- Iframe -->
           <iframe
             [src]="iframeSrc()"
+            (load)="onIframeLoad()"
             class="w-full h-full border-0"
             frameborder="0"
           ></iframe>

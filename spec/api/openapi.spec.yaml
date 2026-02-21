@@ -1,0 +1,1125 @@
+# Nullabroke API Specification
+# This is the authoritative definition of all API contracts
+# Code, validators, and clients are GENERATED from this spec
+
+openapi: 3.1.0
+info:
+  title: Nullabroke SEC Filing API
+  version: 1.0.0
+  description: |
+    API for searching SEC filings, viewing documents, and analyzing company data.
+    
+    This spec is the SOURCE OF TRUTH. All implementations must conform to these contracts.
+  contact:
+    name: Nullabroke Team
+  license:
+    name: Proprietary
+
+servers:
+  - url: /api/v1
+    description: API Gateway (proxied)
+  - url: https://api.nullabroke.com/api/v1
+    description: Production API
+
+tags:
+  - name: Authentication
+    description: Auth test endpoints
+  - name: Company
+    description: Company lookup, search, holdings, and subsidiaries
+  - name: Document
+    description: SEC document retrieval and parsing
+  - name: Filing
+    description: Filing search with SQL-like query language
+  - name: FormType
+    description: SEC form type reference data
+  - name: Strings
+    description: Key-value string storage
+  - name: Tags
+    description: Filing tag search
+
+# =============================================================================
+# PATHS - API Endpoint Contracts
+# =============================================================================
+paths:
+  # ---------------------------------------------------------------------------
+  # Authentication
+  # ---------------------------------------------------------------------------
+  /authentication/test:
+    get:
+      operationId: testAuthentication
+      tags: [Authentication]
+      summary: Test authentication status
+      description: Returns 200 if user is authenticated
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authenticated successfully
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Company Endpoints
+  # ---------------------------------------------------------------------------
+  /company/{cik}:
+    get:
+      operationId: getCompanyByCik
+      tags: [Company]
+      summary: Get company details by CIK
+      parameters:
+        - $ref: '#/components/parameters/CikPath'
+      responses:
+        '200':
+          description: Company details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /company/{cik}/holdings:
+    get:
+      operationId: getCompanyHoldings
+      tags: [Company]
+      summary: Get 13F holdings for an institutional investor
+      description: Returns portfolio holdings from 13F filings
+      parameters:
+        - $ref: '#/components/parameters/CikPath'
+        - name: accessionNumber1
+          in: query
+          description: First accession number for comparison
+          schema:
+            $ref: '#/components/schemas/AccessionNumber'
+        - name: accessionNumber2
+          in: query
+          description: Second accession number for comparison
+          schema:
+            $ref: '#/components/schemas/AccessionNumber'
+        - name: limit
+          in: query
+          description: Maximum number of holdings to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 5000
+      responses:
+        '200':
+          description: List of holdings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Holding'
+
+  /company/{cik}/holders:
+    get:
+      operationId: getCompanyHolders
+      tags: [Company]
+      summary: Get institutional holders of a company
+      description: Returns institutions that hold positions in this company
+      parameters:
+        - $ref: '#/components/parameters/CikPath'
+        - name: current
+          in: query
+          description: Current period date
+          schema:
+            type: string
+            format: date-time
+        - name: previous
+          in: query
+          description: Previous period date for comparison
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+      responses:
+        '200':
+          description: List of institutional holders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Holder'
+
+  /company/{cik}/holders/overtime:
+    get:
+      operationId: getHoldersOverTime
+      tags: [Company]
+      summary: Get historical holder statistics
+      parameters:
+        - $ref: '#/components/parameters/CikPath'
+      responses:
+        '200':
+          description: Historical holder data points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HolderOvertime'
+
+  /company/{cik}/subsidiaries:
+    get:
+      operationId: getCompanySubsidiaries
+      tags: [Company]
+      summary: Get company subsidiaries
+      parameters:
+        - $ref: '#/components/parameters/CikPath'
+      responses:
+        '200':
+          description: List of subsidiaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subsidiary'
+
+  /company/companies/search:
+    get:
+      operationId: searchCompanies
+      tags: [Company]
+      summary: Search companies by name or ticker
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search query (company name or ticker)
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanySearchResult'
+
+  /company/quicksearch:
+    get:
+      operationId: quickSearchCompanies
+      tags: [Company]
+      summary: Quick company typeahead search
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+      responses:
+        '200':
+          description: Quick search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanySearchResult'
+
+  # ---------------------------------------------------------------------------
+  # Document Endpoints
+  # ---------------------------------------------------------------------------
+  /document/{accessionNumber}:
+    get:
+      operationId: getDocument
+      tags: [Document]
+      summary: Get document by accession number
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+      responses:
+        '200':
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '404':
+          description: Document not found
+
+  /document/{accessionNumber}/parsed:
+    get:
+      operationId: getParsedDocument
+      tags: [Document]
+      summary: Get parsed document content
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+      responses:
+        '200':
+          description: Parsed document with sections and tables
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsedDocument'
+
+  /document/{accessionNumber}/{filenameOrSequence}:
+    get:
+      operationId: getDocumentFile
+      tags: [Document]
+      summary: Get specific file from document
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+        - name: filenameOrSequence
+          in: path
+          required: true
+          description: Filename or sequence number
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content
+          content:
+            text/html:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+
+  /document/{accessionNumber}/{filenameOrSequence}/images:
+    get:
+      operationId: getDocumentImages
+      tags: [Document]
+      summary: Get document rendered as images
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+        - name: filenameOrSequence
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: width
+          in: query
+          description: Image width in pixels
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 4000
+            default: 0
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        '200':
+          description: Image data
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /document/{accessionNumber}/primary:
+    get:
+      operationId: getPrimaryDocument
+      tags: [Document]
+      summary: Get primary document file
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+      responses:
+        '200':
+          description: Primary document content
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /document/{accessionNumber}/stripped/{filenameOrSequence}:
+    get:
+      operationId: getStrippedDocument
+      tags: [Document]
+      summary: Get document with styling stripped
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+        - name: filenameOrSequence
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stripped document content
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /document/{accessionNumber}/meta:
+    get:
+      operationId: getDocumentMeta
+      tags: [Document]
+      summary: Get document metadata
+      parameters:
+        - $ref: '#/components/parameters/AccessionNumberPath'
+      responses:
+        '200':
+          description: Document metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMeta'
+
+  # ---------------------------------------------------------------------------
+  # Filing Endpoints
+  # ---------------------------------------------------------------------------
+  /filing/search:
+    get:
+      operationId: searchFilingsGet
+      tags: [Filing]
+      summary: Search filings with query string
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: SQL-like query (e.g., "form_type = '10-K' order by date_filed desc")
+          schema:
+            type: string
+            maxLength: 2000
+        - name: save
+          in: query
+          description: Save query for sharing
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Filing search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingSearchResponse'
+        '400':
+          description: Invalid query syntax
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryError'
+
+    post:
+      operationId: searchFilingsPost
+      tags: [Filing]
+      summary: Search filings with request body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilingSearchQuery'
+      responses:
+        '200':
+          description: Filing search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilingSearchResponse'
+        '400':
+          description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryError'
+
+  /filing/{id}:
+    get:
+      operationId: getFilingById
+      tags: [Filing]
+      summary: Get filing by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Filing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filing'
+        '404':
+          description: Filing not found
+
+  /filing/search/autocomplete:
+    get:
+      operationId: autocompleteQuery
+      tags: [Filing]
+      summary: Get query autocomplete suggestions
+      parameters:
+        - name: query
+          in: query
+          description: Partial query for autocomplete
+          schema:
+            type: string
+            default: ''
+      responses:
+        '200':
+          description: Autocomplete suggestions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AutocompleteResult'
+
+  # ---------------------------------------------------------------------------
+  # Reference Data
+  # ---------------------------------------------------------------------------
+  /formtypes:
+    get:
+      operationId: getFormTypes
+      tags: [FormType]
+      summary: Get all SEC form types
+      responses:
+        '200':
+          description: List of form types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FormType'
+
+  /tags:
+    get:
+      operationId: searchTags
+      tags: [Tags]
+      summary: Search filing tags
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+            default: ''
+      responses:
+        '200':
+          description: Matching tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  # ---------------------------------------------------------------------------
+  # Strings (Key-Value Store)
+  # ---------------------------------------------------------------------------
+  /strings:
+    get:
+      operationId: getAllStrings
+      tags: [Strings]
+      summary: Get all string key-value pairs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All strings
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+
+  /strings/{key}:
+    get:
+      operationId: getString
+      tags: [Strings]
+      summary: Get string by key
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9_-]+$'
+            maxLength: 100
+      responses:
+        '200':
+          description: String value
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Key not found
+
+    post:
+      operationId: setString
+      tags: [Strings]
+      summary: Set string value
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9_-]+$'
+            maxLength: 100
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 10000
+      responses:
+        '200':
+          description: String saved
+        '401':
+          description: Unauthorized
+
+# =============================================================================
+# COMPONENTS - Reusable Schema Definitions
+# =============================================================================
+components:
+  # ---------------------------------------------------------------------------
+  # Security Schemes
+  # ---------------------------------------------------------------------------
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Auth0 JWT token
+
+  # ---------------------------------------------------------------------------
+  # Reusable Parameters
+  # ---------------------------------------------------------------------------
+  parameters:
+    CikPath:
+      name: cik
+      in: path
+      required: true
+      description: Central Index Key (SEC company identifier)
+      schema:
+        $ref: '#/components/schemas/CIK'
+
+    AccessionNumberPath:
+      name: accessionNumber
+      in: path
+      required: true
+      description: SEC accession number
+      schema:
+        $ref: '#/components/schemas/AccessionNumber'
+
+  # ---------------------------------------------------------------------------
+  # Schemas
+  # ---------------------------------------------------------------------------
+  schemas:
+    # -------------------------------------------------------------------------
+    # Primitive Types (with validation)
+    # -------------------------------------------------------------------------
+    CIK:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 9999999999
+      description: Central Index Key - SEC company identifier
+      example: 320193
+
+    AccessionNumber:
+      type: string
+      pattern: '^\d{10}-\d{2}-\d{6}$'
+      description: SEC accession number format (XXXXXXXXXX-XX-XXXXXX)
+      example: '0001193125-24-012345'
+
+    # -------------------------------------------------------------------------
+    # Company Domain
+    # -------------------------------------------------------------------------
+    Company:
+      type: object
+      required:
+        - cik
+        - name
+      properties:
+        cik:
+          $ref: '#/components/schemas/CIK'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Company name
+        ticker:
+          type: string
+          pattern: '^[A-Z]{1,5}$'
+          description: Stock ticker symbol
+        sic:
+          type: string
+          pattern: '^\d{4}$'
+          description: Standard Industrial Classification code
+        sicDescription:
+          type: string
+          description: SIC code description
+        fiscalYearEnd:
+          type: string
+          pattern: '^\d{4}$'
+          description: Fiscal year end (MMDD format)
+        stateOfIncorporation:
+          type: string
+          maxLength: 2
+        businessAddress:
+          $ref: '#/components/schemas/Address'
+        mailingAddress:
+          $ref: '#/components/schemas/Address'
+
+    Address:
+      type: object
+      properties:
+        street1:
+          type: string
+          maxLength: 200
+        street2:
+          type: string
+          maxLength: 200
+        city:
+          type: string
+          maxLength: 100
+        stateOrCountry:
+          type: string
+          maxLength: 50
+        zipCode:
+          type: string
+          pattern: '^\d{5}(-\d{4})?$'
+
+    CompanySearchResult:
+      type: object
+      required:
+        - cik
+        - name
+      properties:
+        cik:
+          $ref: '#/components/schemas/CIK'
+        name:
+          type: string
+        ticker:
+          type: string
+
+    Holding:
+      type: object
+      description: A position held by an institutional investor (from 13F)
+      properties:
+        cusip:
+          type: string
+          pattern: '^[A-Z0-9]{9}$'
+          description: CUSIP identifier
+        issuerName:
+          type: string
+        titleOfClass:
+          type: string
+        value:
+          type: number
+          minimum: 0
+          description: Market value in thousands
+        shares:
+          type: integer
+          minimum: 0
+        sharesPrnAmt:
+          type: string
+          enum: ['SH', 'PRN']
+        investmentDiscretion:
+          type: string
+          enum: ['SOLE', 'SHARED', 'NONE', 'DFND', 'OTR']
+        votingAuthoritySole:
+          type: integer
+          minimum: 0
+        votingAuthorityShared:
+          type: integer
+          minimum: 0
+        votingAuthorityNone:
+          type: integer
+          minimum: 0
+
+    Holder:
+      type: object
+      description: An institution that holds positions in a company
+      properties:
+        cik:
+          $ref: '#/components/schemas/CIK'
+        filerName:
+          type: string
+        shares:
+          type: integer
+        value:
+          type: number
+        changeInShares:
+          type: integer
+        changeInValue:
+          type: number
+        percentOfPortfolio:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    HolderOvertime:
+      type: object
+      properties:
+        period:
+          type: string
+          format: date
+        totalHolders:
+          type: integer
+          minimum: 0
+        totalShares:
+          type: integer
+          minimum: 0
+        totalValue:
+          type: number
+          minimum: 0
+
+    Subsidiary:
+      type: object
+      properties:
+        name:
+          type: string
+        jurisdiction:
+          type: string
+
+    # -------------------------------------------------------------------------
+    # Document Domain
+    # -------------------------------------------------------------------------
+    Document:
+      type: object
+      required:
+        - accessionNumber
+      properties:
+        accessionNumber:
+          $ref: '#/components/schemas/AccessionNumber'
+        formType:
+          type: string
+        filedDate:
+          type: string
+          format: date
+        acceptedDate:
+          type: string
+          format: date-time
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentFile'
+
+    DocumentFile:
+      type: object
+      properties:
+        sequence:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+        filename:
+          type: string
+        type:
+          type: string
+        size:
+          type: integer
+          minimum: 0
+        url:
+          type: string
+          format: uri
+
+    DocumentMeta:
+      type: object
+      required:
+        - accessionNumber
+      properties:
+        accessionNumber:
+          $ref: '#/components/schemas/AccessionNumber'
+        summary:
+          type: string
+        formType:
+          type: string
+        fileNumber:
+          type: string
+        filmNumber:
+          type: string
+        filedDate:
+          type: string
+          format: date
+        acceptedDate:
+          type: string
+          format: date-time
+        periodOfReport:
+          type: string
+          format: date
+        filerCik:
+          $ref: '#/components/schemas/CIK'
+        filerName:
+          type: string
+        primaryDocument:
+          type: string
+        primaryDocumentDescription:
+          type: string
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentFile'
+        filingHeader:
+          $ref: '#/components/schemas/FilingHeader'
+        hasXbrl:
+          type: boolean
+
+    FilingHeader:
+      type: object
+      properties:
+        accessionNumber:
+          $ref: '#/components/schemas/AccessionNumber'
+        conformedSubmissionType:
+          type: string
+        publicDocumentCount:
+          type: integer
+          minimum: 0
+        filedAsOfDate:
+          type: string
+          format: date
+        acceptanceDateTime:
+          type: string
+          format: date-time
+        itemInformation:
+          type: array
+          items:
+            type: string
+
+    ParsedDocument:
+      type: object
+      required:
+        - accessionNumber
+      properties:
+        accessionNumber:
+          $ref: '#/components/schemas/AccessionNumber'
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentSection'
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentTable'
+
+    DocumentSection:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        level:
+          type: integer
+          minimum: 1
+          maximum: 6
+
+    DocumentTable:
+      type: object
+      properties:
+        title:
+          type: string
+        headers:
+          type: array
+          items:
+            type: string
+        rows:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+
+    # -------------------------------------------------------------------------
+    # Filing Domain
+    # -------------------------------------------------------------------------
+    Filing:
+      type: object
+      required:
+        - id
+        - accessionNumber
+        - formType
+        - centralIndexKey
+        - dateFiled
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        accessionNumber:
+          $ref: '#/components/schemas/AccessionNumber'
+        formType:
+          type: string
+        companyConformedName:
+          type: string
+        centralIndexKey:
+          $ref: '#/components/schemas/CIK'
+        relationship:
+          type: string
+        dateFiled:
+          type: string
+          format: date
+        datePublished:
+          type: string
+          format: date-time
+        size:
+          type: integer
+          minimum: 0
+        description:
+          type: string
+        noDocument:
+          type: boolean
+        ticker:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        snowflakeId:
+          type: string
+        fileNumber:
+          type: string
+        filmNumber:
+          type: string
+        sponsorCIK:
+          type: integer
+          nullable: true
+        documentCount:
+          type: integer
+          nullable: true
+        amendedAccessionNumber:
+          type: string
+        isAmendment:
+          type: boolean
+        amendmentAccessionNumber:
+          type: string
+        isAmended:
+          type: boolean
+        fileName:
+          type: string
+        isEmpty:
+          type: boolean
+        absoluteFileUrl:
+          type: string
+          format: uri
+
+    FilingSearchQuery:
+      type: object
+      properties:
+        query:
+          type: string
+          maxLength: 2000
+          nullable: true
+          description: SQL-like query string
+        save:
+          type: boolean
+          default: false
+          description: Whether to save the query for sharing
+
+    FilingSearchResponse:
+      type: object
+      required:
+        - value
+        - statusCode
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Filing'
+        formatters:
+          type: array
+          items: {}
+        contentTypes:
+          type: array
+          items: {}
+        declaredType: {}
+        statusCode:
+          type: integer
+
+    AutocompleteResult:
+      type: object
+      required:
+        - word
+        - type
+      properties:
+        word:
+          type: string
+        type:
+          type: integer
+        category:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        helpUrl:
+          type: string
+          format: uri
+          nullable: true
+
+    # -------------------------------------------------------------------------
+    # Reference Data
+    # -------------------------------------------------------------------------
+    FormType:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: Form type code (e.g., '10-K', '8-K')
+        description:
+          type: string
+        category:
+          type: string
+
+    # -------------------------------------------------------------------------
+    # Error Responses
+    # -------------------------------------------------------------------------
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+    QueryError:
+      type: object
+      required:
+        - message
+        - position
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+        position:
+          type: integer
+          description: Position in query where error occurred
+        suggestion:
+          type: string
+          description: Suggested fix

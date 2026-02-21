@@ -6,7 +6,12 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "spec:validate": "echo 'TODO: Add OpenAPI validator (e.g., @apidevtools/swagger-cli validate spec/api/openapi.spec.yaml)'",
+    "spec:generate:types": "echo 'TODO: Add type generator (e.g., openapi-typescript spec/api/openapi.spec.yaml -o src/app/core/models/generated.ts)'",
+    "spec:generate:client": "echo 'TODO: Add client generator (e.g., openapi-generator-cli generate -i spec/api/openapi.spec.yaml -g typescript-angular -o src/app/core/api)'",
+    "spec:lint": "echo 'TODO: Add spec linter (e.g., spectral lint spec/api/openapi.spec.yaml)'",
+    "spec:diff": "echo 'TODO: Add spec diff tool (e.g., oasdiff diff spec/api/openapi.spec.yaml swagger.json)'"
   },
   "prettier": {
     "printWidth": 100,

@@ -229,6 +229,13 @@ export class DocumentViewerComponent {
   }
 
   /**
+   * Called when iframe finishes loading its content.
+   */
+  onIframeLoad() {
+    this.iframeLoading.set(false);
+  }
+
+  /**
    * Load document into iframe using direct API URL
    */
   loadDocumentInIframe(doc: DocumentFile) {

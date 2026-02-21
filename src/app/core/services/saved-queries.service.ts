@@ -24,6 +24,9 @@ export class SavedQueriesService {
   private readonly compilerService = inject(QueryCompilerService);
   private readonly STORAGE_KEY = 'saved_queries';
 
+  private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly AUTO_SAVE_DELAY = 800;
+
   // State
   readonly savedQueries = signal<SavedQueriesMap>({});
   readonly currentGuid = signal<string | null>(null);
@@ -53,9 +56,6 @@ export class SavedQueriesService {
     const parsed = this.parserService.parseQuery(query);
     return parsed.isValid;
   });
-  
-  // Track if the current query has unsaved changes
-  readonly isDirty = signal(false);
 
   constructor() {
     this.load();
@@ -106,18 +106,30 @@ export class SavedQueriesService {
   }
 
   /**
-   * Start a new query. Clears current state.
+   * Create a new empty query, persist it immediately, and select it.
    */
   newQuery() {
-    this.currentGuid.set(this.generateGuid());
+    const guid = this.generateGuid();
+    const savedQuery: SavedQuery = {
+      query: '',
+      values: [],
+      name: 'Untitled Query',
+    };
+
+    this.savedQueries.update(queries => ({
+      ...queries,
+      [guid]: savedQuery,
+    }));
+
+    this.currentGuid.set(guid);
     this.currentQuery.set('');
     this.currentValues.set([]);
-    this.isDirty.set(true);
+    this.persist();
   }
 
   /**
    * Set the current query text (e.g. from user typing).
-   * Updates parameters and initializes values from defaults.
+   * Updates parameters, initializes values from defaults, and auto-saves.
    */
   setQueryText(text: string) {
     this.currentQuery.set(text);
@@ -138,7 +150,7 @@ export class SavedQueriesService {
       this.currentValues.set(newValues);
     }
     
-    this.checkDirty();
+    this.debouncedAutoSave();
   }
 
   /**
@@ -156,23 +168,22 @@ export class SavedQueriesService {
   }
 
   /**
-   * Set a parameter value at a specific index.
+   * Set a parameter value at a specific index. Auto-saves.
    */
   setParameterValue(index: number, value: ParameterValue) {
     this.currentValues.update(values => {
       const newValues = [...values];
-      // Ensure array is large enough
       while (newValues.length <= index) {
         newValues.push('');
       }
       newValues[index] = value;
       return newValues;
     });
-    this.checkDirty();
+    this.debouncedAutoSave();
   }
 
   /**
-   * Reset a parameter value to its default.
+   * Reset a parameter value to its default. Auto-saves.
    */
   resetParameterValue(index: number) {
     const params = this.currentParameters();
@@ -184,7 +195,7 @@ export class SavedQueriesService {
   }
 
   /**
-   * Reset all parameter values to their defaults.
+   * Reset all parameter values to their defaults. Auto-saves.
    */
   resetAllParameterValues() {
     const params = this.currentParameters();
@@ -192,62 +203,50 @@ export class SavedQueriesService {
       p.defaultValue || this.getDefaultForType(p.componentType)
     );
     this.currentValues.set(defaultValues);
-    this.checkDirty();
+    this.debouncedAutoSave();
   }
 
   /**
-   * Check if current state is dirty (has unsaved changes).
+   * Debounced auto-save: updates the in-memory saved query and persists to server.
    */
-  private checkDirty() {
+  private debouncedAutoSave() {
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+    }
+    this.autoSaveTimer = setTimeout(() => {
+      this.autoSave();
+    }, this.AUTO_SAVE_DELAY);
+  }
+
+  /**
+   * Immediately save current state to the saved queries map and persist.
+   */
+  private autoSave() {
     const guid = this.currentGuid();
-    if (!guid) {
-      this.isDirty.set(true);
-      return;
-    }
-    
-    const saved = this.savedQueries()[guid];
-    if (!saved) {
-      this.isDirty.set(true);
-      return;
-    }
-    
-    // Compare query text
-    if (saved.query !== this.currentQuery()) {
-      this.isDirty.set(true);
-      return;
-    }
-    
-    // Compare values
-    const currentVals = this.currentValues();
-    if (saved.values.length !== currentVals.length) {
-      this.isDirty.set(true);
-      return;
-    }
-    
-    for (let i = 0; i < currentVals.length; i++) {
-      const savedVal = saved.values[i];
-      const currentVal = currentVals[i];
-      
-      // Handle array comparison for tags
-      if (Array.isArray(savedVal) && Array.isArray(currentVal)) {
-        if (savedVal.length !== currentVal.length || 
-            !savedVal.every((v, j) => v === currentVal[j])) {
-          this.isDirty.set(true);
-          return;
-        }
-      } else if (savedVal !== currentVal) {
-        this.isDirty.set(true);
-        return;
-      }
-    }
-    
-    this.isDirty.set(false);
+    if (!guid) return;
+
+    const existing = this.savedQueries()[guid];
+    const savedQuery: SavedQuery = {
+      query: this.currentQuery(),
+      values: [...this.currentValues()],
+      name: existing?.name,
+    };
+
+    this.savedQueries.update(queries => ({
+      ...queries,
+      [guid]: savedQuery,
+    }));
+
+    this.persist();
   }
 
   /**
    * Select a saved query from the sidebar.
    */
   selectQuery(guid: string) {
+    // Flush any pending auto-save for the previous query
+    this.flushAutoSave();
+
     const queries = this.savedQueries();
     const savedQuery = queries[guid];
     
@@ -255,83 +254,48 @@ export class SavedQueriesService {
       this.currentGuid.set(guid);
       this.currentQuery.set(savedQuery.query);
       this.currentValues.set([...savedQuery.values]);
-      this.isDirty.set(false);
     }
   }
 
   /**
-   * Save the current query.
+   * Force-save current state immediately (flushes pending debounce).
    */
-  save() {
-    const guid = this.currentGuid() ?? this.generateGuid();
-    this.currentGuid.set(guid);
-
-    // Preserve existing name if any
-    const existingQuery = this.savedQueries()[guid];
-    
-    const savedQuery: SavedQuery = {
-      query: this.currentQuery(),
-      values: [...this.currentValues()],
-      name: existingQuery?.name,
-    };
-    
-    this.savedQueries.update(queries => ({
-      ...queries,
-      [guid]: savedQuery
-    }));
-    
-    this.isDirty.set(false);
-    this.persist();
+  flushAutoSave() {
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = null;
+    }
+    this.autoSave();
   }
 
   /**
-   * Duplicate the current query to a new GUID and save immediately.
+   * Duplicate a specific query by GUID. Selects the new copy.
    */
-  duplicate() {
-    const newGuid = this.generateGuid();
-    const currentGuidVal = this.currentGuid();
-    const existingQuery = currentGuidVal ? this.savedQueries()[currentGuidVal] : null;
-    
-    const savedQuery: SavedQuery = {
-      query: this.currentQuery(),
-      values: [...this.currentValues()],
-      // Copy name with " (copy)" suffix if exists
-      name: existingQuery?.name ? `${existingQuery.name} (copy)` : undefined,
-    };
-
-    this.savedQueries.update(queries => ({
-      ...queries,
-      [newGuid]: savedQuery
-    }));
-
-    this.currentGuid.set(newGuid);
-    this.isDirty.set(false);
-    this.persist();
-  }
-
-  /**
-   * Duplicate a specific query by GUID.
-   */
-  duplicateQuery(guid: string) {
+  duplicateQuery(guid: string): string | null {
     const queries = this.savedQueries();
     const existingQuery = queries[guid];
     
-    if (!existingQuery) return;
+    if (!existingQuery) return null;
 
     const newGuid = this.generateGuid();
     
     const savedQuery: SavedQuery = {
       query: existingQuery.query,
       values: [...existingQuery.values],
-      name: existingQuery.name ? `${existingQuery.name} (copy)` : undefined,
+      name: existingQuery.name ? `${existingQuery.name} (copy)` : 'Untitled Query (copy)',
     };
 
     this.savedQueries.update(q => ({
       ...q,
-      [newGuid]: savedQuery
+      [newGuid]: savedQuery,
     }));
 
+    this.currentGuid.set(newGuid);
+    this.currentQuery.set(savedQuery.query);
+    this.currentValues.set([...savedQuery.values]);
+
     this.persist();
+    return newGuid;
   }
 
   /**
@@ -348,7 +312,6 @@ export class SavedQueriesService {
       this.currentGuid.set(null);
       this.currentQuery.set('');
       this.currentValues.set([]);
-      this.isDirty.set(false);
     }
     
     this.persist();
