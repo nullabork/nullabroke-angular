@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.3.0';
+export const APP_VERSION = '0.3.1';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,20 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.3.1',
+    sections: [
+      {
+        title: 'Improvements',
+        items: [
+          'SEO: meta tags, Open Graph, Twitter Card, and JSON-LD structured data',
+          'SEO: semantic HTML with proper headings, landmarks, and aria labels',
+          'SEO: descriptive alt text on all images with lazy loading',
+          'SEO: dynamic page title and meta description',
+        ],
+      },
+    ],
+  },
   {
     version: '0.3.0',
     sections: [
