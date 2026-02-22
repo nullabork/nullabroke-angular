@@ -1,5 +1,8 @@
 <router-outlet />
 
+<!-- Welcome / Changelog Modal -->
+<app-welcome-modal [forceShow]="showChangelog()" (closed)="onChangelogClosed()" />
+
 <!-- Status Bar -->
 <div class="status-bar">
   <div class="status-bar-content">
@@ -41,6 +44,13 @@
     }
 
     <div class="status-btn-group">
+      <button class="status-btn-group-item" (click)="openChangelog()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 8v4l3 3"/>
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+        Changelog
+      </button>
       <a class="status-btn-group-item" href="/help" target="_blank" rel="noopener">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>

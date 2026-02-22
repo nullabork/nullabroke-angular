@@ -37,7 +37,6 @@ import { SavedQueriesService } from '../../core/services/saved-queries.service';
 import { Filing } from '../../core/models/filing.model';
 import { SavedQuery } from '../../core/models/query-parameter.model';
 import { QueryParametersComponent } from '../../components/query-builder';
-import { WelcomeModalComponent } from '../../components/welcome-modal/welcome-modal.component';
 
 @Component({
   selector: 'app-filing-search',
@@ -56,7 +55,6 @@ import { WelcomeModalComponent } from '../../components/welcome-modal/welcome-mo
     HlmButtonImports,
     HlmInputImports,
     QueryParametersComponent,
-    WelcomeModalComponent,
   ],
   providers: [
     provideIcons({
