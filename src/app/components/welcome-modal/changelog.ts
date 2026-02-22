@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.2.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,44 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.2.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'Welcome modal with changelog and tips tabs',
+          'Version-aware dismissal (re-shows after updates)',
+          'Logo splash panel with animated background',
+          'Animated logo plays during search',
+          'Dynamic title bar shows selected query name',
+          'Help and Issues button group in status bar',
+          'Pin/unpin queries with sorted display',
+          'Last used timestamps on queries',
+          'Queries menu with Reset, Delete All Defaults options',
+          'Middle-click queries to open in new tab',
+          'Changelog system with versioned entries',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Sidebar scroll fixed (heading stays, list scrolls)',
+          'Blueprint queries detach on edit',
+          'Queries sorted: pinned first, then most recently used',
+          'Filing descriptions wrap in search results',
+        ],
+      },
+      {
+        title: 'Bug Fixes',
+        items: [
+          'Fixed logout button not showing for social logins',
+          'Fixed blueprint queries not persisting',
+          'Fixed welcome modal dismiss not persisting',
+        ],
+      },
+    ],
+  },
   {
     version: '0.1.0',
     sections: [

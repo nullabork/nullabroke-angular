@@ -13,8 +13,7 @@ import { APP_VERSION, CHANGELOG } from './changelog';
     @if (visible()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" (click)="close()">
         <div
-          class="relative w-full max-w-3xl mx-4 bg-[#252526] border border-[#3c3c3c] rounded-lg shadow-2xl flex overflow-hidden"
-          style="min-height: 420px"
+          class="relative w-full max-w-3xl mx-4 bg-[#252526] border border-[#3c3c3c] rounded-lg shadow-2xl flex overflow-hidden max-h-[85vh]"
           (click)="$event.stopPropagation()"
         >
           <!-- Close button -->
@@ -69,21 +68,30 @@ import { APP_VERSION, CHANGELOG } from './changelog';
             <div class="flex-1 overflow-y-auto px-6 py-4">
               @if (activeTab() === 'changelog') {
                 <!-- Changelog Tab -->
-                <div class="mb-3">
-                  <span class="inline-block px-2 py-0.5 text-[11px] font-mono bg-[#0e639c] text-white rounded">v{{ version }}</span>
-                </div>
-                @for (entry of latestChangelog.sections; track entry.title) {
+                @for (release of changelog; track release.version; let first = $first) {
+                  @if (!first) {
+                    <div class="border-t border-[#3c3c3c] my-4"></div>
+                  }
                   <div class="mb-3">
-                    <div class="text-[12px] text-[#858585] uppercase tracking-wide mb-1">{{ entry.title }}</div>
-                    <ul class="space-y-1">
-                      @for (item of entry.items; track item) {
-                        <li class="flex gap-2 text-[13px] text-[#cccccc]">
-                          <span class="text-[#4ec9b0] flex-none">-</span>
-                          <span>{{ item }}</span>
-                        </li>
-                      }
-                    </ul>
+                    <span
+                      class="inline-block px-2 py-0.5 text-[11px] font-mono text-white rounded"
+                      [class.bg-[#0e639c]]="first"
+                      [class.bg-[#3c3c3c]]="!first"
+                    >v{{ release.version }}</span>
                   </div>
+                  @for (section of release.sections; track section.title) {
+                    <div class="mb-3">
+                      <div class="text-[12px] text-[#858585] uppercase tracking-wide mb-1">{{ section.title }}</div>
+                      <ul class="space-y-1">
+                        @for (item of section.items; track item) {
+                          <li class="flex gap-2 text-[13px] text-[#cccccc]">
+                            <span class="text-[#4ec9b0] flex-none">-</span>
+                            <span>{{ item }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
                 }
               } @else {
                 <!-- Tips Tab -->
@@ -143,7 +151,7 @@ export class WelcomeModalComponent {
   readonly activeTab = signal<'changelog' | 'tips'>('changelog');
 
   readonly version = APP_VERSION;
-  readonly latestChangelog = CHANGELOG[0];
+  readonly changelog = CHANGELOG;
 
   constructor() {
     this.stringsService.get(WelcomeModalComponent.STORAGE_KEY).pipe(
