@@ -98,6 +98,20 @@ export class FilingSearchComponent {
   error = signal<string | null>(null);
   results = signal<Filing[]>([]);
   hasSearched = signal(false);
+
+  // Logo animation state
+  animatingLogo = signal(false);
+  logoKey = signal(0);
+
+  // Title: show query name if selected, otherwise default
+  titleText = computed(() => {
+    const guid = this.currentGuid();
+    if (guid) {
+      const q = this.savedQueries()[guid];
+      if (q) return this.savedQueriesService.getQueryDisplayName(q);
+    }
+    return 'SEC Filing Query';
+  });
   
   // Loading state for queries
   queriesLoading = signal(true);
@@ -186,6 +200,12 @@ export class FilingSearchComponent {
     this.queryExpanded.update((v) => !v);
   }
 
+  private stopLogoAfterAnimation(animStart: number, duration: number) {
+    const elapsed = Date.now() - animStart;
+    const remaining = Math.max(0, duration - elapsed);
+    setTimeout(() => this.animatingLogo.set(false), remaining);
+  }
+
   search() {
     const queryText = this.queryControl.value.trim();
     if (!queryText || this.loading()) return;
@@ -210,6 +230,12 @@ export class FilingSearchComponent {
     this.error.set(null);
     this.hasSearched.set(true);
 
+    // Start logo animation (fresh SVG instance each time via cache-busting key)
+    this.logoKey.set(Date.now());
+    this.animatingLogo.set(true);
+    const animStart = Date.now();
+    const ANIM_DURATION = 3200;
+
     this.filingService
       .search(compiledQuery)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -217,10 +243,12 @@ export class FilingSearchComponent {
         next: (filings) => {
           this.results.set(filings ?? []);
           this.loading.set(false);
+          this.stopLogoAfterAnimation(animStart, ANIM_DURATION);
         },
         error: () => {
           this.results.set([]);
           this.loading.set(false);
+          this.stopLogoAfterAnimation(animStart, ANIM_DURATION);
         },
       });
   }
