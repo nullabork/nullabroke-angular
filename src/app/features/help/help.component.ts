@@ -45,7 +45,7 @@ import {
       <!-- Top bar -->
       <header class="sticky top-0 z-20 h-9 flex items-center justify-between px-3 bg-[#252526] border-b border-[#3c3c3c]">
         <div class="flex items-center gap-2">
-          <a routerLink="/" class="flex items-center justify-center w-7 h-7 text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]" title="Back to search">
+          <a routerLink="/filings" class="flex items-center justify-center w-7 h-7 text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]" title="Back to search">
             <ng-icon name="lucideArrowLeft" class="text-[16px]" />
           </a>
           <span class="text-[13px] text-[#3c3c3c]">|</span>

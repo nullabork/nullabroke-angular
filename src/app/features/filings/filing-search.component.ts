@@ -252,7 +252,7 @@ export class FilingSearchComponent {
   }
 
   openDocument(filing: Filing) {
-    this.router.navigate(['/document', filing.accessionNumber]);
+    this.router.navigate(['/filings/document', filing.accessionNumber]);
   }
 
   // Saved Queries Actions

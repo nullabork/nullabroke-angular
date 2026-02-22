@@ -107,7 +107,7 @@ describe('FilingSearchComponent', () => {
     it('should navigate on openDocument', () => {
       const mockFiling = { accessionNumber: '0001' } as Filing;
       component.openDocument(mockFiling);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/document', '0001']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/filings/document', '0001']);
     });
 
     it('should call service methods for query actions', () => {

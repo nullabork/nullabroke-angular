@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.2.3';
+export const APP_VERSION = '0.3.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,24 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.3.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'Landing page at / with feature overview, screenshots, and sign-in CTA',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Moved filings to /filings and documents to /filings/document/:id',
+          'Auth "Continue to App" now navigates to /filings',
+        ],
+      },
+    ],
+  },
   {
     version: '0.2.3',
     sections: [
