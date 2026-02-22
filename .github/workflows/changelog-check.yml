@@ -1,0 +1,38 @@
+name: Changelog Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Require changelog update
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip-changelog')"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changelog changes
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          if echo "$CHANGED" | grep -qE '^changelog/v.+\.md$' || \
+             echo "$CHANGED" | grep -q 'src/app/components/welcome-modal/changelog.ts'; then
+            echo "Changelog updated."
+          else
+            echo ""
+            echo "ERROR: This PR does not include a changelog update."
+            echo ""
+            echo "Please either:"
+            echo "  1. Add a new changelog/vX.Y.Z.md file and update changelog.ts"
+            echo "  2. Add the 'skip-changelog' label to this PR if no entry is needed"
+            exit 1
+          fi

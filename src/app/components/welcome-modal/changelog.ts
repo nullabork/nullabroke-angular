@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.2.0';
+export const APP_VERSION = '0.2.1';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,19 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.2.1',
+    sections: [
+      {
+        title: 'New Features',
+        items: ['Changelog button in the status bar to re-open the welcome modal at any time'],
+      },
+      {
+        title: 'Bug Fixes',
+        items: ['Fixed changelog modal not dismissing correctly after being shown'],
+      },
+    ],
+  },
   {
     version: '0.2.0',
     sections: [
