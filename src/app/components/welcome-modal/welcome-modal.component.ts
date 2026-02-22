@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -146,6 +146,7 @@ export class WelcomeModalComponent {
   private readonly stringsService = inject(StringsService);
   private static readonly STORAGE_KEY = 'welcome_dismissed';
 
+  readonly forceShow = input(false);
   readonly visible = signal(false);
   readonly closed = output<void>();
   readonly activeTab = signal<'changelog' | 'tips'>('changelog');
@@ -154,6 +155,10 @@ export class WelcomeModalComponent {
   readonly changelog = CHANGELOG;
 
   constructor() {
+    effect(() => {
+      if (this.forceShow()) this.visible.set(true);
+    });
+
     this.stringsService.get(WelcomeModalComponent.STORAGE_KEY).pipe(
       takeUntilDestroyed(),
     ).subscribe({
