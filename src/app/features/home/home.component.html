@@ -1,251 +1,276 @@
 <div class="min-h-screen bg-[#0a0a0a] text-[#cccccc]">
 
   <!-- Nav -->
-  <nav class="sticky top-0 z-50 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
-    <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-      <a routerLink="/" class="flex items-center gap-2.5 no-underline">
-        <img src="/logo.svg" alt="" class="w-8 h-8" />
-        <span class="text-white font-semibold text-lg tracking-tight">Nullabroke</span>
-      </a>
-      <div class="flex items-center gap-4">
-        <a href="#features" class="hidden sm:inline text-sm text-[#858585] hover:text-white transition-colors no-underline">Features</a>
-        <a routerLink="/auth" class="text-sm font-medium bg-[#0e639c] hover:bg-[#1177bb] text-white px-4 py-2 rounded transition-colors no-underline">
-          Sign In
+  <header>
+    <nav class="sticky top-0 z-50 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md" aria-label="Main navigation">
+      <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <a routerLink="/" class="flex items-center gap-2.5 no-underline" aria-label="Nullabroke home">
+          <img src="/logo.svg" alt="Nullabroke logo" class="w-8 h-8" width="32" height="32" />
+          <span class="text-white font-semibold text-lg tracking-tight">Nullabroke</span>
         </a>
+        <div class="flex items-center gap-4">
+          <a href="#features" class="hidden sm:inline text-sm text-[#858585] hover:text-white transition-colors no-underline">Features</a>
+          <a routerLink="/auth" class="text-sm font-medium bg-[#0e639c] hover:bg-[#1177bb] text-white px-4 py-2 rounded transition-colors no-underline">
+            Sign In
+          </a>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </header>
 
-  <!-- Hero -->
-  <section class="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24">
-    <div class="hero-bg">
-      <div class="gradient-orb orb-1"></div>
-      <div class="gradient-orb orb-2"></div>
-      <div class="gradient-orb orb-3"></div>
-      <div class="grid-overlay"></div>
-    </div>
-
-    <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#4ec9b0]/30 bg-[#4ec9b0]/5 text-[#4ec9b0] text-xs font-medium mb-6">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#4ec9b0]"></span>
-        Now in beta
+  <main>
+    <!-- Hero -->
+    <section class="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24" aria-label="Introduction">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+        <div class="grid-overlay"></div>
       </div>
 
-      <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-6">
-        Search SEC Filings<br />
-        <span class="text-[#4ec9b0]">Like a Pro</span>
-      </h1>
+      <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#4ec9b0]/30 bg-[#4ec9b0]/5 text-[#4ec9b0] text-xs font-medium mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#4ec9b0]" aria-hidden="true"></span>
+          Now in beta
+        </div>
 
-      <p class="text-lg md:text-xl text-[#858585] max-w-2xl mx-auto mb-10 leading-relaxed">
-        Search, explore, and analyze SEC filings with powerful query-driven workflows.
-        Built for analysts, researchers, and anyone who needs fast access to EDGAR data.
-      </p>
+        <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1] mb-6">
+          Search SEC Filings<br />
+          <span class="text-[#4ec9b0]">Like a Pro</span>
+        </h1>
 
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16 md:mb-20">
-        <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#0e639c] hover:bg-[#1177bb] text-white font-medium px-8 py-3 rounded text-base transition-colors no-underline">
+        <p class="text-lg md:text-xl text-[#858585] max-w-2xl mx-auto mb-10 leading-relaxed">
+          Search, explore, and analyze SEC filings with powerful query-driven workflows.
+          Built for analysts, researchers, and anyone who needs fast access to EDGAR data.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16 md:mb-20">
+          <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#0e639c] hover:bg-[#1177bb] text-white font-medium px-8 py-3 rounded text-base transition-colors no-underline">
+            Get Started Free
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+          </a>
+          <a href="#features" class="inline-flex items-center gap-2 text-[#858585] hover:text-white font-medium px-6 py-3 rounded border border-white/10 hover:border-white/20 text-base transition-colors no-underline">
+            See Features
+          </a>
+        </div>
+
+        <!-- Hero Screenshot -->
+        <div class="hero-screenshot max-w-5xl mx-auto">
+          <img
+            src="/screenshots/filings-presentations.png"
+            alt="Nullabroke SEC filing search interface showing the query builder, saved queries sidebar with 19 pre-built templates, and search results for 8-K filings"
+            class="w-full rounded-lg ring-1 ring-white/10 shadow-2xl"
+            loading="eager"
+            width="1920"
+            height="1080"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-16 md:py-24" aria-label="Features">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-16 md:mb-20">
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Everything you need for SEC research</h2>
+          <p class="text-lg text-[#858585] max-w-2xl mx-auto">A purpose-built tool for searching, filtering, and reading SEC filings — without the noise.</p>
+        </div>
+
+        <!-- Feature 1: Query Builder -->
+        <article class="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-32">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#0e639c]/10 text-[#0e639c] text-xs font-medium mb-4 border border-[#0e639c]/20">
+              Query Engine
+            </div>
+            <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Powerful Query Builder</h3>
+            <p class="text-[#858585] text-base leading-relaxed mb-4">
+              Write SQL-like queries to filter filings by form type, company name, date, tags, and more.
+              Embed dynamic parameters directly in your queries — dropdowns, text fields, and number inputs
+              that compile into the final search.
+            </p>
+            <ul class="space-y-2 text-sm text-[#858585]" role="list">
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                SQL-like WHERE clause syntax
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Dynamic parameters with 4 input types
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Sort, limit, and combine conditions
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img
+              src="/screenshots/filings-custom-query-tool.png"
+              alt="Query builder showing a Presentations query with dynamic FormTypes parameter dropdown set to 8-K and a search button"
+              class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
+              loading="lazy"
+              width="970"
+              height="480"
+            />
+          </div>
+        </article>
+
+        <!-- Feature 2: Saved Queries -->
+        <article class="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-32">
+          <div class="order-2 md:order-1 grid grid-cols-2 gap-4">
+            <img
+              src="/screenshots/pinned-queries.png"
+              alt="Saved queries sidebar showing pinned Presentations and By Ticker queries with color-coded icons and timestamps"
+              class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
+              loading="lazy"
+              width="500"
+              height="500"
+            />
+            <img
+              src="/screenshots/query-action.png"
+              alt="Query context menu with Pin, Reset, Duplicate, Rename, and Delete actions"
+              class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
+              loading="lazy"
+              width="500"
+              height="360"
+            />
+          </div>
+          <div class="order-1 md:order-2">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#4ec9b0]/10 text-[#4ec9b0] text-xs font-medium mb-4 border border-[#4ec9b0]/20">
+              Organization
+            </div>
+            <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Save & Organize Queries</h3>
+            <p class="text-[#858585] text-base leading-relaxed mb-4">
+              Save your queries and access them instantly from the sidebar. Pin your favorites to the top,
+              duplicate and rename them, or start from one of 19 built-in blueprint queries for common SEC searches.
+            </p>
+            <ul class="space-y-2 text-sm text-[#858585]" role="list">
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Pin, rename, duplicate, and delete
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                19 pre-built blueprint queries
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Auto-save with last-used tracking
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Feature 3: Document Viewer -->
+        <article class="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-32">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#646695]/10 text-[#8888bb] text-xs font-medium mb-4 border border-[#646695]/20">
+              Documents
+            </div>
+            <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Built-in Document Viewer</h3>
+            <p class="text-[#858585] text-base leading-relaxed mb-4">
+              Click any filing result to open it in the embedded document viewer. Navigate between
+              all documents in a filing — proxy statements, exhibits, XBRL files — without leaving the app.
+            </p>
+            <ul class="space-y-2 text-sm text-[#858585]" role="list">
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                View HTM, HTML, TXT, and XML documents
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Filing metadata and company info sidebar
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Direct links to SEC.gov originals
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img
+              src="/screenshots/documents.png"
+              alt="Document viewer displaying a Microsoft Corp DEF 14A proxy statement with sidebar showing filing info, document list, and company details"
+              class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
+              loading="lazy"
+              width="960"
+              height="600"
+            />
+          </div>
+        </article>
+
+        <!-- Feature 4: Responsive -->
+        <article class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+          <div class="order-2 md:order-1 flex items-end gap-4 justify-center">
+            <img
+              src="/screenshots/filings-desktop-results.png"
+              alt="Desktop view of SEC filing search results showing company names, accession numbers, and filing descriptions"
+              class="feature-img w-3/5 rounded-lg ring-1 ring-white/10 shadow-xl"
+              loading="lazy"
+              width="670"
+              height="400"
+            />
+            <img
+              src="/screenshots/filings-mobile-results.png"
+              alt="Mobile view of the same filing search results in a compact responsive layout"
+              class="feature-img w-1/4 rounded-lg ring-1 ring-white/10 shadow-xl"
+              loading="lazy"
+              width="320"
+              height="600"
+            />
+          </div>
+          <div class="order-1 md:order-2">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/5 text-[#858585] text-xs font-medium mb-4 border border-white/10">
+              Responsive
+            </div>
+            <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Works Everywhere</h3>
+            <p class="text-[#858585] text-base leading-relaxed mb-4">
+              A fully responsive interface that works on your desktop, tablet, or phone.
+              Search filings on the go and pick up right where you left off.
+            </p>
+            <ul class="space-y-2 text-sm text-[#858585]" role="list">
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Desktop and mobile optimized
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Dark theme designed for extended use
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-[#4ec9b0] mt-0.5" aria-hidden="true">&#10003;</span>
+                Sign in with Google or GitHub
+              </li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="relative py-20 md:py-32 overflow-hidden" aria-label="Get started">
+      <div class="cta-glow" aria-hidden="true"></div>
+      <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
+        <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Ready to explore SEC filings?</h2>
+        <p class="text-lg text-[#858585] mb-8">Free to use. No credit card required. Sign in and start searching in seconds.</p>
+        <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#0e639c] hover:bg-[#1177bb] text-white font-medium px-8 py-3.5 rounded text-base transition-colors no-underline">
           Get Started Free
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-        </a>
-        <a href="#features" class="inline-flex items-center gap-2 text-[#858585] hover:text-white font-medium px-6 py-3 rounded border border-white/10 hover:border-white/20 text-base transition-colors no-underline">
-          See Features
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
         </a>
       </div>
-
-      <!-- Hero Screenshot -->
-      <div class="hero-screenshot max-w-5xl mx-auto">
-        <img
-          src="/screenshots/filings-presentations.png"
-          alt="Nullabroke filing search interface"
-          class="w-full rounded-lg ring-1 ring-white/10 shadow-2xl"
-        />
-      </div>
-    </div>
-  </section>
-
-  <!-- Features -->
-  <section id="features" class="py-16 md:py-24">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-center mb-16 md:mb-20">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Everything you need for SEC research</h2>
-        <p class="text-lg text-[#858585] max-w-2xl mx-auto">A purpose-built tool for searching, filtering, and reading SEC filings — without the noise.</p>
-      </div>
-
-      <!-- Feature 1: Query Builder -->
-      <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-32">
-        <div>
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#0e639c]/10 text-[#0e639c] text-xs font-medium mb-4 border border-[#0e639c]/20">
-            Query Engine
-          </div>
-          <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Powerful Query Builder</h3>
-          <p class="text-[#858585] text-base leading-relaxed mb-4">
-            Write SQL-like queries to filter filings by form type, company name, date, tags, and more.
-            Embed dynamic parameters directly in your queries — dropdowns, text fields, and number inputs
-            that compile into the final search.
-          </p>
-          <ul class="space-y-2 text-sm text-[#858585]">
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              SQL-like WHERE clause syntax
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Dynamic parameters with 4 input types
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Sort, limit, and combine conditions
-            </li>
-          </ul>
-        </div>
-        <div>
-          <img
-            src="/screenshots/filings-custom-query-tool.png"
-            alt="Query builder with dynamic parameters"
-            class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
-          />
-        </div>
-      </div>
-
-      <!-- Feature 2: Saved Queries -->
-      <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-32">
-        <div class="order-2 md:order-1 grid grid-cols-2 gap-4">
-          <img
-            src="/screenshots/pinned-queries.png"
-            alt="Pinned saved queries"
-            class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
-          />
-          <img
-            src="/screenshots/query-action.png"
-            alt="Query action menu"
-            class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
-          />
-        </div>
-        <div class="order-1 md:order-2">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#4ec9b0]/10 text-[#4ec9b0] text-xs font-medium mb-4 border border-[#4ec9b0]/20">
-            Organization
-          </div>
-          <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Save & Organize Queries</h3>
-          <p class="text-[#858585] text-base leading-relaxed mb-4">
-            Save your queries and access them instantly from the sidebar. Pin your favorites to the top,
-            duplicate and rename them, or start from one of 19 built-in blueprint queries for common SEC searches.
-          </p>
-          <ul class="space-y-2 text-sm text-[#858585]">
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Pin, rename, duplicate, and delete
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              19 pre-built blueprint queries
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Auto-save with last-used tracking
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Feature 3: Document Viewer -->
-      <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-32">
-        <div>
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#646695]/10 text-[#8888bb] text-xs font-medium mb-4 border border-[#646695]/20">
-            Documents
-          </div>
-          <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Built-in Document Viewer</h3>
-          <p class="text-[#858585] text-base leading-relaxed mb-4">
-            Click any filing result to open it in the embedded document viewer. Navigate between
-            all documents in a filing — proxy statements, exhibits, XBRL files — without leaving the app.
-          </p>
-          <ul class="space-y-2 text-sm text-[#858585]">
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              View HTM, HTML, TXT, and XML documents
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Filing metadata and company info sidebar
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Direct links to SEC.gov originals
-            </li>
-          </ul>
-        </div>
-        <div>
-          <img
-            src="/screenshots/documents.png"
-            alt="Document viewer with sidebar"
-            class="feature-img w-full rounded-lg ring-1 ring-white/10 shadow-xl"
-          />
-        </div>
-      </div>
-
-      <!-- Feature 4: Responsive -->
-      <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-        <div class="order-2 md:order-1 flex items-end gap-4 justify-center">
-          <img
-            src="/screenshots/filings-desktop-results.png"
-            alt="Desktop filing results"
-            class="feature-img w-3/5 rounded-lg ring-1 ring-white/10 shadow-xl"
-          />
-          <img
-            src="/screenshots/filings-mobile-results.png"
-            alt="Mobile filing results"
-            class="feature-img w-1/4 rounded-lg ring-1 ring-white/10 shadow-xl"
-          />
-        </div>
-        <div class="order-1 md:order-2">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/5 text-[#858585] text-xs font-medium mb-4 border border-white/10">
-            Responsive
-          </div>
-          <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">Works Everywhere</h3>
-          <p class="text-[#858585] text-base leading-relaxed mb-4">
-            A fully responsive interface that works on your desktop, tablet, or phone.
-            Search filings on the go and pick up right where you left off.
-          </p>
-          <ul class="space-y-2 text-sm text-[#858585]">
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Desktop and mobile optimized
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Dark theme designed for extended use
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-[#4ec9b0] mt-0.5">&#10003;</span>
-              Sign in with Google or GitHub
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Bottom CTA -->
-  <section class="relative py-20 md:py-32 overflow-hidden">
-    <div class="cta-glow"></div>
-    <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
-      <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Ready to explore SEC filings?</h2>
-      <p class="text-lg text-[#858585] mb-8">Free to use. No credit card required. Sign in and start searching in seconds.</p>
-      <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#0e639c] hover:bg-[#1177bb] text-white font-medium px-8 py-3.5 rounded text-base transition-colors no-underline">
-        Get Started Free
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-      </a>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- Footer -->
   <footer class="border-t border-white/5 py-10">
     <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#6e6e6e]">
       <div class="flex items-center gap-2">
-        <img src="/logo.svg" alt="" class="w-5 h-5" />
+        <img src="/logo.svg" alt="" class="w-5 h-5" width="20" height="20" aria-hidden="true" />
         <span>Nullabroke</span>
       </div>
       <div class="flex items-center gap-6">
         <a routerLink="/help" class="hover:text-[#cccccc] transition-colors no-underline">Help</a>
-        <a href="https://github.com/nullabork/nullabroke-angular/issues" target="_blank" rel="noopener" class="hover:text-[#cccccc] transition-colors no-underline">Issues</a>
+        <a href="https://github.com/nullabork/nullabroke-angular/issues" target="_blank" rel="noopener noreferrer" class="hover:text-[#cccccc] transition-colors no-underline">Issues</a>
       </div>
     </div>
   </footer>
