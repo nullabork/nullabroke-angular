@@ -1,5 +1,6 @@
 <router-outlet />
 
+@if (showAppChrome()) {
 <!-- Welcome / Changelog Modal -->
 <app-welcome-modal [forceShow]="showChangelog()" (closed)="onChangelogClosed()" />
 
@@ -68,3 +69,4 @@
     </div>
   </div>
 </div>
+}
