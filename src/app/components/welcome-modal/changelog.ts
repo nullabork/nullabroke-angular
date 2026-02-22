@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.2.2';
+export const APP_VERSION = '0.2.3';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,15 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.2.3',
+    sections: [
+      {
+        title: 'Bug Fixes',
+        items: ['Fixed Presentations blueprint query missing `and` keyword before `form_type` clause'],
+      },
+    ],
+  },
   {
     version: '0.2.2',
     sections: [
