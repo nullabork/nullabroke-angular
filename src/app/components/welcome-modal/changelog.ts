@@ -10,10 +10,16 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '0.3.0',
     sections: [
       {
+        title: 'New Features',
+        items: [
+          'Landing page at / with feature overview, screenshots, and sign-in CTA',
+        ],
+      },
+      {
         title: 'Improvements',
         items: [
-          'Moved filings to /filings and documents to /filings/document/:id to prepare for a home page',
-          'Root path (/) now redirects to /filings',
+          'Moved filings to /filings and documents to /filings/document/:id',
+          'Auth "Continue to App" now navigates to /filings',
         ],
       },
     ],
