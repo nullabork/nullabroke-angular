@@ -38,7 +38,9 @@ export class StringsService {
    * @param key - The key to retrieve
    */
   get(key: string): Observable<string | null> {
-    return this.http.get<string | null>(`${this.baseUrl}/strings/${encodeURIComponent(key)}`);
+    return this.http.get(`${this.baseUrl}/strings/${encodeURIComponent(key)}`, {
+      responseType: 'text',
+    });
   }
 
   /**
