@@ -38,6 +38,11 @@ hlm-sidebar,
   --sidebar-accent-foreground: #cccccc !important;
 }
 
+/* Sidebar container border inherits currentColor by default — override to theme grey */
+[data-slot="sidebar-container"] {
+  border-color: #3c3c3c;
+}
+
 /* Sidebar menu button hover/active states */
 [hlmSidebarMenuButton]:hover {
   background-color: #3c3c3c !important;
