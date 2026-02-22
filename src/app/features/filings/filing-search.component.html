@@ -295,7 +295,12 @@
             <ng-icon name="lucidePanelLeft" />
             <span class="sr-only">Toggle Sidebar</span>
           </button>
-          <span class="text-[13px] text-[#cccccc]">SEC Filing Search</span>
+          <img
+            [src]="animatingLogo() ? '/logo-anim.svg?t=' + logoKey() : '/logo.svg'"
+            alt="Nullabroke"
+            class="h-7 w-7"
+          />
+          <span class="text-[13px] text-[#cccccc]">{{ titleText() }}</span>
         </div>
         <button
           (click)="toggleQuery()"
