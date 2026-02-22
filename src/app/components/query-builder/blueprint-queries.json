@@ -62,7 +62,7 @@
   {
     "id": "bp-presentations",
     "name": "Presentations",
-    "query": "array['Presentation'] && tags\nform_type = '8-K'\norder by snowflake desc\nlimit 150",
+    "query": "array['Presentation'] && tags\nand form_type = '8-K'\norder by snowflake desc\nlimit 150",
     "values": []
   },
   {
