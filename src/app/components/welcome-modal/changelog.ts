@@ -16,6 +16,7 @@ export const CHANGELOG: ChangelogEntry[] = [
           'SEO: semantic HTML with proper headings, landmarks, and aria labels',
           'SEO: descriptive alt text on all images with lazy loading',
           'SEO: dynamic page title and meta description',
+          'Hide status bar and changelog modal on homepage and auth pages',
         ],
       },
     ],
