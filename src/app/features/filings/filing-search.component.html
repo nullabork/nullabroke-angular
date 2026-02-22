@@ -84,7 +84,7 @@
                     </div>
                   } @else {
                     <a 
-                      [href]="'/?q=' + entry[0]"
+                      [href]="'/filings?q=' + entry[0]"
                       (click)="$event.preventDefault(); selectSavedQuery(entry[0])"
                       class="group/item w-full flex items-center p-2 rounded hover:bg-[#3c3c3c] transition-colors text-[#cccccc] cursor-pointer relative no-underline"
                       [class.bg-[#37373d]]="currentGuid() === entry[0]"
@@ -178,7 +178,7 @@
                       </div>
                     } @else {
                       <a 
-                        [href]="'/?q=' + entry[0]"
+                        [href]="'/filings?q=' + entry[0]"
                         (click)="$event.preventDefault(); selectSavedQuery(entry[0])"
                         class="group/item w-full flex items-center p-2 rounded hover:bg-[#2a2a2e] transition-colors text-[#cccccc] cursor-pointer relative bg-[#17171a] no-underline"
                         [class.!bg-[#2a2a30]]="currentGuid() === entry[0]"
@@ -398,7 +398,7 @@
         <div class="divide-y divide-[#3c3c3c]" role="list" aria-label="Search results">
           @for (filing of results(); track filing.id) {
             <a
-              [routerLink]="['/document', filing.accessionNumber]"
+              [routerLink]="['/filings/document', filing.accessionNumber]"
               class="group flex items-center w-full text-left hover:bg-[#2a2d2e] cursor-pointer no-underline"
               role="listitem"
             >

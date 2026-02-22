@@ -1,0 +1,93 @@
+/* Background effects */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.2;
+  animation: float 25s infinite ease-in-out;
+}
+
+.orb-1 {
+  width: 700px;
+  height: 700px;
+  background: #0e639c;
+  top: -200px;
+  left: -200px;
+}
+
+.orb-2 {
+  width: 500px;
+  height: 500px;
+  background: #4ec9b0;
+  top: 100px;
+  right: -150px;
+  animation-delay: -10s;
+}
+
+.orb-3 {
+  width: 400px;
+  height: 400px;
+  background: #646695;
+  bottom: -100px;
+  left: 30%;
+  animation-delay: -18s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -40px) scale(1.05); }
+  66% { transform: translate(-30px, 50px) scale(0.95); }
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Hero screenshot */
+.hero-screenshot {
+  animation: fadeUp 0.8s ease-out 0.2s both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) rotateX(4deg) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) rotateX(1deg) translateY(0);
+  }
+}
+
+/* Feature images */
+.feature-img {
+  transition: transform 0.3s ease;
+}
+
+.feature-img:hover {
+  transform: scale(1.02);
+}
+
+/* CTA glow */
+.cta-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(14, 99, 156, 0.15) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}

@@ -8,15 +8,22 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/auth.component').then((m) => m.AuthComponent),
   },
-  // Protected routes - require authentication
+  // Public route - home/landing page
   {
     path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/home/home.component').then((m) => m.HomeComponent),
+  },
+  // Protected routes - require authentication
+  {
+    path: 'filings',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/filings/filing-search.component').then((m) => m.FilingSearchComponent),
   },
   {
-    path: 'document/:accessionNumber',
+    path: 'filings/document/:accessionNumber',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/document/document-viewer.component').then((m) => m.DocumentViewerComponent),
