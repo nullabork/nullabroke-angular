@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.3.1';
+export const APP_VERSION = '0.4.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,19 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.4.0',
+    sections: [
+      {
+        title: 'Improvements',
+        items: [
+          'Refactored filing search into sub-components: result row, status bar, query item, query editor',
+          'Filing result row redesigned with CSS grid layout: ticker, title, description, tags, and date',
+          'Filing result row: description promoted to primary title, company name shown as subtitle',
+        ],
+      },
+    ],
+  },
   {
     version: '0.3.1',
     sections: [

@@ -1,28 +1,18 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, computed, effect } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideChevronDown,
   lucideChevronUp,
   lucideSearch,
-  lucideLoader2,
-  lucideFile,
   lucidePlus,
-  lucideCopy,
-  lucideAlertCircle,
   lucidePanelLeft,
   lucideTrash2,
-  lucidePencil,
-  lucideCheck,
   lucideEllipsisVertical,
   lucideRotateCcw,
-  lucideCircleHelp,
-  lucidePin,
-  lucidePinOff,
 } from '@ng-icons/lucide';
-import { DatePipe } from '@angular/common';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
@@ -30,7 +20,6 @@ import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { BrnDialogImports } from '@spartan-ng/brain/dialog';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmInputImports } from '@spartan-ng/helm/input';
 
 import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
@@ -38,15 +27,19 @@ import { SavedQueriesService } from '../../core/services/saved-queries.service';
 import { Filing } from '../../core/models/filing.model';
 import { SavedQuery } from '../../core/models/query-parameter.model';
 import { QueryParametersComponent } from '../../components/query-builder';
+import {
+  FilingStatusBarComponent,
+  FilingResultRowComponent,
+  FilingQueryEditorComponent,
+  FilingQueryItemComponent,
+} from './components';
 
 @Component({
   selector: 'app-filing-search',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ReactiveFormsModule, 
-    RouterLink,
-    NgIcon, 
-    DatePipe,
+    ReactiveFormsModule,
+    NgIcon,
     HlmSidebarImports,
     HlmSkeletonImports,
     HlmIconImports,
@@ -54,28 +47,22 @@ import { QueryParametersComponent } from '../../components/query-builder';
     BrnDialogImports,
     HlmDialogImports,
     HlmButtonImports,
-    HlmInputImports,
     QueryParametersComponent,
+    FilingStatusBarComponent,
+    FilingResultRowComponent,
+    FilingQueryEditorComponent,
+    FilingQueryItemComponent,
   ],
   providers: [
     provideIcons({
       lucideChevronDown,
       lucideChevronUp,
       lucideSearch,
-      lucideLoader2,
-      lucideFile,
       lucidePlus,
-      lucideCopy,
-      lucideAlertCircle,
       lucidePanelLeft,
       lucideTrash2,
-      lucidePencil,
-      lucideCheck,
       lucideEllipsisVertical,
       lucideRotateCcw,
-      lucideCircleHelp,
-      lucidePin,
-      lucidePinOff,
     }),
   ],
   templateUrl: './filing-search.component.html',
@@ -256,10 +243,6 @@ export class FilingSearchComponent {
       });
   }
 
-  openDocument(filing: Filing) {
-    this.router.navigate(['/filings/document', filing.accessionNumber]);
-  }
-
   // Saved Queries Actions
   newQuery() {
     this.savedQueriesService.newQuery();
@@ -389,10 +372,6 @@ export class FilingSearchComponent {
     }
     
     return '??';
-  }
-
-  isBlueprint(savedQuery: SavedQuery | string): boolean {
-    return typeof savedQuery !== 'string' && !!savedQuery.blueprintId;
   }
 
   getQueryDisplayText(savedQuery: SavedQuery | string): string {

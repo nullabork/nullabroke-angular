@@ -55,90 +55,25 @@
               <!-- User Queries (top) -->
               @for (entry of userQueryEntries(); track entry[0]) {
                 <li hlmSidebarMenuItem>
-                  @if (renamingGuid() === entry[0]) {
-                    <div class="flex items-center gap-1 p-1 w-full">
-                      <div 
-                        class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
-                        [style.background-color]="getColorForGuid(entry[0])"
-                      >
-                        {{ getTextForSquare(entry[1]) }}
-                      </div>
-                      <input
-                        hlmInput
-                        type="text"
-                        [value]="renameValue()"
-                        (input)="renameValue.set($any($event.target).value)"
-                        (keydown)="onRenameKeydown($event)"
-                        (blur)="saveRename()"
-                        placeholder="Enter name..."
-                        class="flex-1 h-7 text-[12px] bg-[#1e1e1e] border-[#3c3c3c] text-[#cccccc] group-data-[collapsible=icon]:hidden"
-                        autofocus
-                      />
-                      <button
-                        (click)="saveRename()"
-                        class="w-7 h-7 flex items-center justify-center text-[#4ec9b0] hover:bg-[#3c3c3c] rounded group-data-[collapsible=icon]:hidden"
-                        title="Save"
-                      >
-                        <ng-icon name="lucideCheck" size="sm" />
-                      </button>
-                    </div>
-                  } @else {
-                    <a 
-                      [href]="'/filings?q=' + entry[0]"
-                      (click)="$event.preventDefault(); selectSavedQuery(entry[0])"
-                      class="group/item w-full flex items-center p-2 rounded hover:bg-[#3c3c3c] transition-colors text-[#cccccc] cursor-pointer relative no-underline"
-                      [class.bg-[#37373d]]="currentGuid() === entry[0]"
-                      [title]="getQueryDisplayText(entry[1])"
-                    >
-                      <div 
-                        class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
-                        [style.background-color]="getColorForGuid(entry[0])"
-                      >
-                        {{ getTextForSquare(entry[1]) }}
-                      </div>
-                      <div class="ml-3 flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                        <div class="flex items-center gap-1">
-                          @if (entry[1].pinned) {
-                            <ng-icon name="lucidePin" class="text-[11px] text-[#4ec9b0] flex-none" />
-                          }
-                          <span class="text-[12px] truncate">{{ getQueryDisplayText(entry[1]) }}</span>
-                        </div>
-                        @if (entry[1].lastUsed) {
-                          <div class="text-[10px] text-[#555555]">{{ getRelativeTime(entry[1].lastUsed) }}</div>
-                        }
-                      </div>
-                      <button
-                        [hlmDropdownMenuTrigger]="userMenu"
-                        (click)="$event.stopPropagation(); $event.preventDefault()"
-                        class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden flex-none"
-                        title="More actions"
-                      >
-                        <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
-                      </button>
-                      <ng-template #userMenu>
-                        <hlm-dropdown-menu class="w-48 bg-[#252526] border-[#3c3c3c]">
-                          <hlm-dropdown-menu-group>
-                            <button hlmDropdownMenuItem (click)="onTogglePin(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                              <ng-icon [name]="entry[1].pinned ? 'lucidePinOff' : 'lucidePin'" class="mr-2" />
-                              {{ entry[1].pinned ? 'Unpin' : 'Pin' }}
-                            </button>
-                            <button hlmDropdownMenuItem (click)="onDuplicateQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                              <ng-icon name="lucideCopy" class="mr-2" /> Duplicate
-                            </button>
-                            <button hlmDropdownMenuItem (click)="onRenameQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                              <ng-icon name="lucidePencil" class="mr-2" /> Rename
-                            </button>
-                          </hlm-dropdown-menu-group>
-                          <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
-                          <hlm-dropdown-menu-group>
-                            <button hlmDropdownMenuItem (click)="onDeleteQuery(entry[0])" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
-                              <ng-icon name="lucideTrash2" class="mr-2" /> Delete
-                            </button>
-                          </hlm-dropdown-menu-group>
-                        </hlm-dropdown-menu>
-                      </ng-template>
-                    </a>
-                  }
+                  <app-filing-query-item
+                    [guid]="entry[0]"
+                    [query]="entry[1]"
+                    [isActive]="currentGuid() === entry[0]"
+                    [isRenaming]="renamingGuid() === entry[0]"
+                    [renameValue]="renameValue()"
+                    [color]="getColorForGuid(entry[0])"
+                    [iconText]="getTextForSquare(entry[1])"
+                    [displayText]="getQueryDisplayText(entry[1])"
+                    [relativeTime]="getRelativeTime(entry[1].lastUsed)"
+                    (select)="selectSavedQuery($event)"
+                    (togglePin)="onTogglePin($event)"
+                    (duplicate)="onDuplicateQuery($event)"
+                    (rename)="onRenameQuery($event)"
+                    (deleteQuery)="onDeleteQuery($event)"
+                    (renameKeydown)="onRenameKeydown($event)"
+                    (saveRename)="saveRename()"
+                    (renameValueChange)="renameValue.set($event)"
+                  />
                 </li>
               }
 
@@ -149,97 +84,31 @@
                 </li>
                 @for (entry of blueprintQueryEntries(); track entry[0]) {
                   <li hlmSidebarMenuItem>
-                    @if (renamingGuid() === entry[0]) {
-                      <div class="flex items-center gap-1 p-1 w-full bg-[#17171a] rounded">
-                        <div 
-                          class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
-                          [style.background-color]="getColorForGuid(entry[0])"
-                        >
-                          {{ getTextForSquare(entry[1]) }}
-                        </div>
-                        <input
-                          hlmInput
-                          type="text"
-                          [value]="renameValue()"
-                          (input)="renameValue.set($any($event.target).value)"
-                          (keydown)="onRenameKeydown($event)"
-                          (blur)="saveRename()"
-                          placeholder="Enter name..."
-                          class="flex-1 h-7 text-[12px] bg-[#1e1e1e] border-[#3c3c3c] text-[#cccccc] group-data-[collapsible=icon]:hidden"
-                          autofocus
-                        />
-                        <button
-                          (click)="saveRename()"
-                          class="w-7 h-7 flex items-center justify-center text-[#4ec9b0] hover:bg-[#3c3c3c] rounded group-data-[collapsible=icon]:hidden"
-                          title="Save"
-                        >
-                          <ng-icon name="lucideCheck" size="sm" />
-                        </button>
-                      </div>
-                    } @else {
-                      <a 
-                        [href]="'/filings?q=' + entry[0]"
-                        (click)="$event.preventDefault(); selectSavedQuery(entry[0])"
-                        class="group/item w-full flex items-center p-2 rounded hover:bg-[#2a2a2e] transition-colors text-[#cccccc] cursor-pointer relative bg-[#17171a] no-underline"
-                        [class.!bg-[#2a2a30]]="currentGuid() === entry[0]"
-                        [title]="getQueryDisplayText(entry[1])"
-                      >
-                        <div 
-                          class="w-8 h-8 flex-none rounded flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-1 ring-white/10"
-                          [style.background-color]="getColorForGuid(entry[0])"
-                        >
-                          {{ getTextForSquare(entry[1]) }}
-                        </div>
-                        <div class="ml-3 flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                          <div class="flex items-center gap-1">
-                            @if (entry[1].pinned) {
-                              <ng-icon name="lucidePin" class="text-[11px] text-[#4ec9b0] flex-none" />
-                            }
-                            <span class="text-[12px] truncate">{{ getQueryDisplayText(entry[1]) }}</span>
-                          </div>
-                          @if (entry[1].lastUsed) {
-                            <div class="text-[10px] text-[#555555]">{{ getRelativeTime(entry[1].lastUsed) }}</div>
-                          }
-                        </div>
-                        <button
-                          [hlmDropdownMenuTrigger]="bpMenu"
-                          (click)="$event.stopPropagation(); $event.preventDefault()"
-                          class="ml-auto w-6 h-6 flex items-center justify-center text-[#555555] hover:text-[#cccccc] hover:bg-[#505050] rounded transition-colors group-data-[collapsible=icon]:hidden flex-none"
-                          title="More actions"
-                        >
-                          <ng-icon name="lucideEllipsisVertical" class="text-[16px]" />
-                        </button>
-                        <ng-template #bpMenu>
-                          <hlm-dropdown-menu class="w-48 bg-[#252526] border-[#3c3c3c]">
-                            <hlm-dropdown-menu-group>
-                              <button hlmDropdownMenuItem (click)="onTogglePin(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                                <ng-icon [name]="entry[1].pinned ? 'lucidePinOff' : 'lucidePin'" class="mr-2" />
-                                {{ entry[1].pinned ? 'Unpin' : 'Pin' }}
-                              </button>
-                              <button hlmDropdownMenuItem (click)="onResetBlueprint(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                                <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset
-                              </button>
-                              <button hlmDropdownMenuItem (click)="onDuplicateQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                                <ng-icon name="lucideCopy" class="mr-2" /> Duplicate
-                              </button>
-                              <button hlmDropdownMenuItem (click)="onRenameQuery(entry[0])" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
-                                <ng-icon name="lucidePencil" class="mr-2" /> Rename
-                              </button>
-                            </hlm-dropdown-menu-group>
-                            <hlm-dropdown-menu-separator class="bg-[#3c3c3c]" />
-                            <hlm-dropdown-menu-group>
-                              <button hlmDropdownMenuItem (click)="onDeleteQuery(entry[0])" class="text-[#f48771] hover:bg-[#5a1d1d] focus:bg-[#5a1d1d]">
-                                <ng-icon name="lucideTrash2" class="mr-2" /> Delete
-                              </button>
-                            </hlm-dropdown-menu-group>
-                          </hlm-dropdown-menu>
-                        </ng-template>
-                      </a>
-                    }
+                    <app-filing-query-item
+                      [guid]="entry[0]"
+                      [query]="entry[1]"
+                      [isActive]="currentGuid() === entry[0]"
+                      [isRenaming]="renamingGuid() === entry[0]"
+                      [renameValue]="renameValue()"
+                      [color]="getColorForGuid(entry[0])"
+                      [iconText]="getTextForSquare(entry[1])"
+                      [displayText]="getQueryDisplayText(entry[1])"
+                      [relativeTime]="getRelativeTime(entry[1].lastUsed)"
+                      [isBlueprint]="true"
+                      (select)="selectSavedQuery($event)"
+                      (togglePin)="onTogglePin($event)"
+                      (duplicate)="onDuplicateQuery($event)"
+                      (rename)="onRenameQuery($event)"
+                      (deleteQuery)="onDeleteQuery($event)"
+                      (resetBlueprint)="onResetBlueprint($event)"
+                      (renameKeydown)="onRenameKeydown($event)"
+                      (saveRename)="saveRename()"
+                      (renameValueChange)="renameValue.set($event)"
+                    />
                   </li>
                 }
               }
-              
+
               <!-- Empty state -->
               @if (!hasSavedQueries()) {
                 <li hlmSidebarMenuItem>
@@ -314,47 +183,17 @@
 
       <!-- Query Panel (collapsible) -->
       @if (queryExpanded()) {
-        <div class="bg-[#252526] border-t border-[#3c3c3c]">
-          <div class="flex">
-            <textarea
-              [formControl]="queryControl"
-              (keydown.control.enter)="search()"
-              (keydown.meta.enter)="search()"
-              placeholder="form_type = '8-K' order by snowflake desc limit 50"
-              spellcheck="false"
-              aria-label="Search query"
-              class="flex-1 h-20 px-3 py-2 bg-[#1e1e1e] text-[#d4d4d4] placeholder-[#6e6e6e] text-[13px] font-mono border-r border-[#3c3c3c] focus:outline-none resize-none"
-              [class.border-red-500]="!isQueryValid()"
-              [class.border-l-2]="!isQueryValid()"
-            ></textarea>
-          </div>
-          
-          <!-- Parse Errors -->
-          @if (parseErrors().length > 0) {
-            <div class="px-3 py-1.5 bg-[#5a1d1d] border-t border-[#3c3c3c]">
-              @for (err of parseErrors(); track err.startIndex) {
-                <div class="flex items-center gap-1.5 text-[11px] text-[#f48771]">
-                  <ng-icon name="lucideAlertCircle" class="text-[12px]" />
-                  {{ err.message }}
-                </div>
-              }
-            </div>
-          }
-          
-          <!-- Toolbar -->
-          <div class="px-3 py-1.5 text-[11px] text-[#6e6e6e] border-t border-[#3c3c3c] flex items-center justify-between">
-            <div>
-              <kbd class="text-[#858585] font-sans">Ctrl+Enter</kbd> to search
-              @if (hasParameters()) {
-                <span class="ml-3 text-[#4ec9b0]">• Query has parameters</span>
-              }
-            </div>
-          </div>
-        </div>
+        <app-filing-query-editor
+          [queryControl]="queryControl"
+          [isQueryValid]="isQueryValid()"
+          [parseErrors]="parseErrors()"
+          [hasParameters]="hasParameters()"
+          (searchTriggered)="search()"
+        />
       }
 
       <!-- Parameter Inputs + Search Button (ALWAYS visible, even when query editor is collapsed) -->
-      <app-query-parameters 
+      <app-query-parameters
         [loading]="loading()"
         [searchDisabled]="loading() || !isQueryValid()"
         (searchClick)="search()"
@@ -397,52 +236,17 @@
         <!-- Results List -->
         <div class="divide-y divide-[#3c3c3c]" role="list" aria-label="Search results">
           @for (filing of results(); track filing.id) {
-            <a
-              [routerLink]="['/filings/document', filing.accessionNumber]"
-              class="group flex items-center w-full text-left hover:bg-[#2a2d2e] cursor-pointer no-underline"
-              role="listitem"
-            >
-              <!-- Icon -->
-              <div class="w-10 flex items-center justify-center text-[#858585]">
-                <ng-icon name="lucideFile" class="text-[16px]" aria-hidden="true" />
-              </div>
-
-              <!-- Main Content -->
-              <div class="flex-1 py-1.5 pr-2 min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="text-[13px] text-[#d4d4d4] truncate">
-                    {{ filing.companyConformedName }}
-                  </span>
-                  <span class="flex-none px-1 py-0 text-[10px] font-medium bg-[#0e639c] text-white">
-                    {{ filing.formType }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-3 text-[11px] text-[#858585] font-mono mt-0.5">
-                  <span>{{ filing.accessionNumber }}</span>
-                  <span>CIK {{ filing.centralIndexKey }}</span>
-                  <span>{{ filing.dateFiled | date:'mediumDate' }}</span>
-                </div>
-                @if (filing.description) {
-                  <div class="text-[11px] text-[#6e6e6e] mt-0.5 break-words test">
-                    {{ filing.description }}
-                  </div>
-                }
-              </div>
-            </a>
+            <app-filing-result-row [filing]="filing" />
           }
         </div>
       }
     </main>
 
     <!-- Status Bar -->
-    <footer class="flex-none h-6 flex items-center px-3 bg-[#007acc] text-white text-[12px]">
-      @if (loading()) {
-        <span>Searching...</span>
-      } @else if (hasSearched()) {
-        <span>{{ results().length }} filing(s)</span>
-      } @else {
-        <span>Ready</span>
-      }
-    </footer>
+    <app-filing-status-bar
+      [loading]="loading()"
+      [hasSearched]="hasSearched()"
+      [resultCount]="results().length"
+    />
   </main>
 </div>
