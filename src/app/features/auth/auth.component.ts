@@ -1,5 +1,8 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '@auth0/auth0-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { combineLatest, filter, take } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { LoginButtonComponent } from '../../components/auth/login-button.component';
 import { LogoutButtonComponent } from '../../components/auth/logout-button.component';
@@ -322,4 +325,19 @@ import { ProfileComponent } from '../../components/auth/profile.component';
 })
 export class AuthComponent {
   protected auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    // Auto-redirect authenticated users to /filings
+    combineLatest([this.auth.isLoading$, this.auth.isAuthenticated$]).pipe(
+      filter(([isLoading]) => !isLoading),
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(([, isAuthenticated]) => {
+      if (isAuthenticated) {
+        this.router.navigate(['/filings']);
+      }
+    });
+  }
 }

@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
 import { Title, Meta } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '@auth0/auth0-angular';
+import { of } from 'rxjs';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('HomeComponent', () => {
@@ -13,6 +15,9 @@ describe('HomeComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomeComponent, RouterModule.forRoot([])],
+      providers: [
+        { provide: AuthService, useValue: { isLoading$: of(false), isAuthenticated$: of(false) } },
+      ],
     }).compileComponents();
 
     titleService = TestBed.inject(Title);
