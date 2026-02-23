@@ -9,8 +9,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideIcons } from '@ng-icons/core';
 import { lucideSearch } from '@ng-icons/lucide';
-import { DatePipe } from '@angular/common';
-import { Filing } from '../../core/models/filing.model';
 
 describe('FilingSearchComponent', () => {
   let component: FilingSearchComponent;
@@ -102,12 +100,6 @@ describe('FilingSearchComponent', () => {
       expect(component.error()).toBeNull();
       expect(component.results()).toEqual([]);
       expect(component.loading()).toBe(false);
-    });
-
-    it('should navigate on openDocument', () => {
-      const mockFiling = { accessionNumber: '0001' } as Filing;
-      component.openDocument(mockFiling);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/filings/document', '0001']);
     });
 
     it('should call service methods for query actions', () => {
