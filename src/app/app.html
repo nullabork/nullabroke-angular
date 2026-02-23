@@ -1,6 +1,6 @@
 <router-outlet />
 
-@if (showAppChrome()) {
+@if (appChrome.visible()) {
 <!-- Welcome / Changelog Modal -->
 <app-welcome-modal [forceShow]="showChangelog()" (closed)="onChangelogClosed()" />
 

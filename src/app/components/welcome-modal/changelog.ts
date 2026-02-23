@@ -17,6 +17,7 @@ export const CHANGELOG: ChangelogEntry[] = [
           'SEO: descriptive alt text on all images with lazy loading',
           'SEO: dynamic page title and meta description',
           'Hide status bar and changelog modal on homepage and auth pages',
+          'AppChromeService: page components opt-in to status bar via signal instead of URL matching',
         ],
       },
     ],

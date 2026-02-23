@@ -29,6 +29,7 @@ import {
   lucideImage,
 } from '@ng-icons/lucide';
 
+import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
 import { DocumentService } from '../../core/services/document.service';
 import { Filing } from '../../core/models/filing.model';
@@ -85,6 +86,7 @@ interface IframeMessage {
   styleUrl: './document-viewer.component.css',
 })
 export class DocumentViewerComponent {
+  private readonly appChrome = inject(AppChromeService);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly filingService = inject(FilingService);
@@ -120,6 +122,9 @@ export class DocumentViewerComponent {
   });
 
   constructor() {
+    this.appChrome.visible.set(true);
+    this.destroyRef.onDestroy(() => this.appChrome.visible.set(false));
+
     // React to route param changes using effect
     effect(() => {
       const accNum = this.accessionNumber();
