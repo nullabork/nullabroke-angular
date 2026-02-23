@@ -32,6 +32,7 @@ import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 
+import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
 import { SavedQueriesService } from '../../core/services/saved-queries.service';
 import { Filing } from '../../core/models/filing.model';
@@ -80,6 +81,7 @@ import { QueryParametersComponent } from '../../components/query-builder';
   templateUrl: './filing-search.component.html',
 })
 export class FilingSearchComponent {
+  private readonly appChrome = inject(AppChromeService);
   private readonly filingService = inject(FilingService);
   private readonly savedQueriesService = inject(SavedQueriesService);
   private readonly router = inject(Router);
@@ -165,6 +167,9 @@ export class FilingSearchComponent {
 
 
   constructor() {
+    this.appChrome.visible.set(true);
+    this.destroyRef.onDestroy(() => this.appChrome.visible.set(false));
+
     // Initialize query control from service state
     const currentQuery = this.savedQueriesService.currentQuery();
     if (currentQuery) {
