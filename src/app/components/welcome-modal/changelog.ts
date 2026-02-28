@@ -10,6 +10,14 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '0.4.0',
     sections: [
       {
+        title: 'New Features',
+        items: [
+          'XBRL data viewer: click any XBRL document to see formatted financial reports with tabbed navigation',
+          'XBRL reports display human-readable names parsed from FilingSummary.xml',
+          'XBRL badge on XBRL documents in the sidebar',
+        ],
+      },
+      {
         title: 'Improvements',
         items: [
           'Refactored filing search into sub-components: result row, status bar, query item, query editor',

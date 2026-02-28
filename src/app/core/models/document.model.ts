@@ -101,3 +101,16 @@ export interface DocumentImageOptions {
   page?: number;
 }
 
+/**
+ * A report entry parsed from FilingSummary.xml in XBRL filings.
+ */
+export interface XbrlReport {
+  shortName: string;
+  longName: string;
+  htmlFileName: string;
+  menuCategory: string;
+  position: number;
+  reportType: string;
+  role?: string;
+}
+
