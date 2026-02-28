@@ -8,7 +8,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -32,8 +32,9 @@ import {
 import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
 import { DocumentService } from '../../core/services/document.service';
+import { XbrlParserService } from '../../core/services/xbrl-parser.service';
 import { Filing } from '../../core/models/filing.model';
-import { DocumentFile, DocumentMeta } from '../../core/models/document.model';
+import { DocumentFile, DocumentMeta, XbrlReport } from '../../core/models/document.model';
 
 /**
  * Selection data received from iframe postMessage
@@ -91,6 +92,7 @@ export class DocumentViewerComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly filingService = inject(FilingService);
   private readonly documentService = inject(DocumentService);
+  private readonly xbrlParser = inject(XbrlParserService);
   private readonly destroyRef = inject(DestroyRef);
 
   // Convert route params to signal
@@ -114,6 +116,14 @@ export class DocumentViewerComponent {
 
   // Selection context (for future AI/context features)
   selectionContext = signal<SelectionData | null>(null);
+
+  // XBRL viewer state
+  xbrlMode = signal(false);
+  xbrlReports = signal<XbrlReport[]>([]);
+  xbrlReportNames = signal<Map<string, string>>(new Map());
+  selectedXbrlReport = signal<XbrlReport | null>(null);
+  xbrlReportHtml = signal<SafeHtml | null>(null);
+  xbrlLoading = signal(false);
 
   sections = signal({
     info: true,
@@ -230,7 +240,119 @@ export class DocumentViewerComponent {
 
   selectDocument(doc: DocumentFile) {
     this.selectedDocument.set(doc);
-    this.loadDocumentInIframe(doc);
+
+    if (this.isXbrlDocument(doc)) {
+      this.enterXbrlMode();
+    } else {
+      if (this.xbrlMode()) {
+        this.exitXbrlMode();
+      }
+      this.loadDocumentInIframe(doc);
+    }
+  }
+
+  isXbrlDocument(doc: DocumentFile): boolean {
+    const desc = (doc.description || '').toUpperCase();
+    const filename = (doc.filename || '').toLowerCase();
+    return desc.includes('XBRL') || filename === 'filingsummary.xml';
+  }
+
+  enterXbrlMode() {
+    const accessionNumber = this.accessionNumber();
+    if (!accessionNumber) return;
+
+    // Find FilingSummary.xml in the document list
+    const summaryDoc = this.documents().find(
+      (d) => (d.filename || '').toLowerCase() === 'filingsummary.xml'
+    );
+
+    if (!summaryDoc?.sequence) {
+      // No FilingSummary.xml found — fall back to iframe for this XBRL doc
+      const doc = this.selectedDocument();
+      if (doc) {
+        this.loadDocumentInIframe(doc);
+      }
+      return;
+    }
+
+    this.xbrlMode.set(true);
+    this.xbrlLoading.set(true);
+    this.iframeSrc.set(null);
+
+    // Fetch and parse FilingSummary.xml
+    this.documentService
+      .getDocumentText(accessionNumber, summaryDoc.sequence)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (xml) => {
+          const reports = this.xbrlParser.parseFilingSummary(xml);
+          this.xbrlReports.set(reports);
+
+          // Build filename→shortName map for sidebar labels
+          const nameMap = new Map<string, string>();
+          for (const report of reports) {
+            nameMap.set(report.htmlFileName.toLowerCase(), report.shortName);
+          }
+          this.xbrlReportNames.set(nameMap);
+
+          // Auto-select first report
+          if (reports.length > 0) {
+            this.selectXbrlReport(reports[0]);
+          } else {
+            this.xbrlLoading.set(false);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to load FilingSummary.xml:', err);
+          this.xbrlLoading.set(false);
+        },
+      });
+  }
+
+  selectXbrlReport(report: XbrlReport) {
+    const accessionNumber = this.accessionNumber();
+    if (!accessionNumber) return;
+
+    this.selectedXbrlReport.set(report);
+    this.xbrlLoading.set(true);
+    this.xbrlReportHtml.set(null);
+
+    // Find the R*.htm file in documents list by matching filename
+    const reportDoc = this.documents().find(
+      (d) => (d.filename || '').toLowerCase() === report.htmlFileName.toLowerCase()
+    );
+
+    if (!reportDoc?.sequence) {
+      this.xbrlLoading.set(false);
+      return;
+    }
+
+    this.documentService
+      .getDocumentText(accessionNumber, reportDoc.sequence)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (html) => {
+          this.xbrlReportHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
+          this.xbrlLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Failed to load XBRL report:', err);
+          this.xbrlLoading.set(false);
+        },
+      });
+  }
+
+  exitXbrlMode() {
+    this.xbrlMode.set(false);
+    this.xbrlReports.set([]);
+    this.selectedXbrlReport.set(null);
+    this.xbrlReportHtml.set(null);
+    this.xbrlLoading.set(false);
+  }
+
+  getXbrlReportName(doc: DocumentFile): string | null {
+    const filename = (doc.filename || '').toLowerCase();
+    return this.xbrlReportNames().get(filename) || null;
   }
 
   /**

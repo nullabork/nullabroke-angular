@@ -17,3 +17,140 @@ iframe {
 main {
   position: relative;
 }
+
+/* ============================================
+   XBRL Report Viewer Styles
+   ============================================
+   These target injected HTML from SEC R*.htm files.
+   Using ::ng-deep because [innerHTML] content is
+   outside Angular's view encapsulation.
+   ============================================ */
+
+:host ::ng-deep .xbrl-content {
+  color: #cccccc;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+:host ::ng-deep .xbrl-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  background: #1e1e1e;
+  border: 1px solid #3c3c3c;
+}
+
+:host ::ng-deep .xbrl-content th {
+  background: #252526;
+  color: #cccccc;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid #3c3c3c;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .xbrl-content td {
+  padding: 6px 12px;
+  border: 1px solid #2d2d2d;
+  font-size: 12px;
+  vertical-align: top;
+}
+
+:host ::ng-deep .xbrl-content tr:nth-child(even) {
+  background: #252526;
+}
+
+:host ::ng-deep .xbrl-content tr:nth-child(odd) {
+  background: #1e1e1e;
+}
+
+:host ::ng-deep .xbrl-content tr:hover {
+  background: #2a2d2e;
+}
+
+/* Numeric values — right-align */
+:host ::ng-deep .xbrl-content td.nump,
+:host ::ng-deep .xbrl-content td.num {
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  color: #4ec9b0;
+}
+
+/* Negative values */
+:host ::ng-deep .xbrl-content td.numn {
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  color: #f14c4c;
+}
+
+/* Row labels */
+:host ::ng-deep .xbrl-content td.pl,
+:host ::ng-deep .xbrl-content td.text {
+  color: #cccccc;
+}
+
+/* Bold/header rows within tables */
+:host ::ng-deep .xbrl-content tr.rh td,
+:host ::ng-deep .xbrl-content td strong,
+:host ::ng-deep .xbrl-content td b {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Links in XBRL content */
+:host ::ng-deep .xbrl-content a {
+  color: #3794ff;
+  text-decoration: none;
+}
+
+:host ::ng-deep .xbrl-content a:hover {
+  text-decoration: underline;
+}
+
+/* Override any inline styles from SEC HTML */
+:host ::ng-deep .xbrl-content * {
+  background-color: transparent !important;
+  color: inherit;
+}
+
+:host ::ng-deep .xbrl-content table,
+:host ::ng-deep .xbrl-content th,
+:host ::ng-deep .xbrl-content td {
+  background-color: revert !important;
+}
+
+/* Report title styling */
+:host ::ng-deep .xbrl-content h1,
+:host ::ng-deep .xbrl-content h2,
+:host ::ng-deep .xbrl-content h3 {
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+/* Hide any embedded scripts or style tags */
+:host ::ng-deep .xbrl-content style,
+:host ::ng-deep .xbrl-content script {
+  display: none;
+}
+
+/* Scrollable table wrapper for wide tables */
+:host ::ng-deep .xbrl-content {
+  overflow-x: auto;
+}
+
+/* Report tab scrollbar styling */
+.xbrl-content::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.xbrl-content::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 3px;
+}
+
+.xbrl-content::-webkit-scrollbar-track {
+  background: transparent;
+}

@@ -89,14 +89,19 @@
                       <ng-icon [name]="getDocIcon(doc)" class="text-[14px] text-[#858585] flex-none" />
                       <div class="flex-1 min-w-0">
                         <div class="text-[12px] truncate" [class.text-white]="selectedDocument()?.sequence === doc.sequence">
-                          {{ doc.filename }}
+                          {{ getXbrlReportName(doc) || doc.filename }}
                         </div>
-                        @if (doc.description) {
+                        @if (getXbrlReportName(doc)) {
+                          <div class="text-[10px] text-[#6e6e6e] truncate">{{ doc.filename }}</div>
+                        } @else if (doc.description) {
                           <div class="text-[10px] text-[#6e6e6e] truncate">{{ doc.description }}</div>
                         }
                       </div>
                       @if (doc.sequence === 1) {
                         <span class="text-[9px] px-1 bg-[#0e639c] text-white flex-none">PRIMARY</span>
+                      }
+                      @if (isXbrlDocument(doc)) {
+                        <span class="text-[9px] px-1 bg-[#4d3d0a] text-[#d4a843] flex-none">XBRL</span>
                       }
                     </button>
                   }
@@ -137,6 +142,40 @@
           <p class="text-[15px]">Failed to load filing</p>
           <p class="text-[13px] mt-1 text-[#6e6e6e]">{{ error() }}</p>
         </div>
+      } @else if (xbrlMode()) {
+        <!-- XBRL Report Viewer -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+          <!-- Report tabs bar -->
+          <div class="flex-none flex items-center gap-1 px-2 py-1.5 bg-[#252526] border-b border-[#3c3c3c] overflow-x-auto">
+            @for (report of xbrlReports(); track report.position) {
+              <button
+                (click)="selectXbrlReport(report)"
+                class="px-3 py-1 text-[12px] whitespace-nowrap rounded-sm transition-colors"
+                [class]="selectedXbrlReport()?.htmlFileName === report.htmlFileName
+                  ? 'bg-[#094771] text-white'
+                  : 'text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]'"
+              >
+                {{ report.shortName }}
+              </button>
+            }
+          </div>
+
+          <!-- Report content -->
+          <div class="flex-1 overflow-auto">
+            @if (xbrlLoading()) {
+              <div class="flex items-center justify-center h-full">
+                <ng-icon name="lucideLoader2" class="text-[32px] text-[#858585] animate-spin" />
+              </div>
+            } @else if (xbrlReportHtml()) {
+              <div class="xbrl-content p-4" [innerHTML]="xbrlReportHtml()"></div>
+            } @else {
+              <div class="flex-1 flex flex-col items-center justify-center h-full text-[#6e6e6e]">
+                <ng-icon name="lucideTable" class="text-[48px] mb-3 opacity-30" />
+                <p class="text-[13px]">No XBRL reports found</p>
+              </div>
+            }
+          </div>
+        </div>
       } @else if (iframeSrc()) {
         <!-- Document Frame Container -->
         <div class="flex-1 relative overflow-auto bg-white">
@@ -146,7 +185,7 @@
               <ng-icon name="lucideLoader2" class="text-[32px] text-[#858585] animate-spin" />
             </div>
           }
-          
+
           <!-- Iframe -->
           <iframe
             [src]="iframeSrc()"
@@ -173,7 +212,12 @@
   <!-- Status Bar -->
   <footer class="flex-none h-6 flex items-center justify-between px-3 bg-[#007acc] text-white text-[12px]">
     <div class="flex items-center gap-3">
-      @if (selectedDocument()) {
+      @if (xbrlMode() && selectedXbrlReport()) {
+        <span>{{ selectedXbrlReport()!.shortName }}</span>
+        @if (xbrlLoading()) {
+          <span class="text-blue-200">· Loading...</span>
+        }
+      } @else if (selectedDocument()) {
         <span>{{ selectedDocument()!.filename }}</span>
         @if (iframeLoading()) {
           <span class="text-blue-200">· Loading...</span>

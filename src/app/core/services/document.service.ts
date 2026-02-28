@@ -139,6 +139,18 @@ export class DocumentService {
   }
 
   /**
+   * Get a document's content as text.
+   * Useful for fetching XML or HTML content for client-side parsing.
+   * @param accessionNumber - The document's accession number
+   * @param seq - The sequence number of the file
+   */
+  getDocumentText(accessionNumber: string, seq: number | string): Observable<string> {
+    return this.http.get(`${this.baseUrl}/${accessionNumber}/${seq}`, {
+      responseType: 'text',
+    });
+  }
+
+  /**
    * Get context information for a document fragment.
    * @param accessionNumber - The document's accession number
    * @param fragment - The fragment to get context for
