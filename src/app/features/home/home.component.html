@@ -10,6 +10,7 @@
         </a>
         <div class="flex items-center gap-4">
           <a href="#features" class="hidden sm:inline text-sm text-[#707080] hover:text-white transition-colors no-underline">Features</a>
+          <a href="#how-it-works" class="hidden sm:inline text-sm text-[#707080] hover:text-white transition-colors no-underline">How It Works</a>
           <a routerLink="/auth" class="text-sm font-medium bg-[#4ec9b0] hover:bg-[#3db89f] text-[#060608] px-4 py-2 rounded-lg transition-colors no-underline">
             Sign In
           </a>
@@ -25,83 +26,232 @@
         <div class="hero-glow"></div>
       </div>
 
-      <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#4ec9b0]/20 bg-[#4ec9b0]/5 text-[#4ec9b0] text-xs font-medium mb-8">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#4ec9b0] animate-pulse" aria-hidden="true"></span>
-          Free during beta
-        </div>
+      <div class="relative z-10 max-w-6xl mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <!-- Left: Text -->
+          <div class="text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#4ec9b0]/20 bg-[#4ec9b0]/5 text-[#4ec9b0] text-xs font-medium mb-8">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#4ec9b0] animate-pulse" aria-hidden="true"></span>
+              Free during beta
+            </div>
 
-        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.08] mb-6">
-          Search and analyze<br />
-          SEC filings with <span class="hero-gradient-text">precision</span>
-        </h1>
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl font-bold text-white tracking-tight leading-[1.08] mb-6">
+              Search and analyze<br />
+              SEC filings with <span class="hero-gradient-text">precision</span>
+            </h1>
 
-        <p class="text-base md:text-lg text-[#707080] max-w-xl mx-auto mb-10 leading-relaxed">
-          A query-driven tool for searching, filtering, and reading EDGAR filings.
-          Built for analysts, researchers, and investors.
-        </p>
+            <p class="text-base md:text-lg text-[#707080] max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+              A query-driven tool for searching, filtering, and reading EDGAR filings.
+              Built for analysts, researchers, and investors.
+            </p>
 
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16 md:mb-24">
-          <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#4ec9b0] hover:bg-[#3db89f] text-[#060608] font-semibold px-7 py-3 rounded-lg text-sm transition-colors no-underline">
-            Get Started Free
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
-          <a href="#features" class="inline-flex items-center gap-2 text-[#707080] hover:text-white font-medium px-6 py-3 rounded-lg border border-white/8 hover:border-white/15 text-sm transition-colors no-underline">
-            See How It Works
-          </a>
-        </div>
+            <div class="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
+              <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#4ec9b0] hover:bg-[#3db89f] text-[#060608] font-semibold px-7 py-3 rounded-lg text-sm transition-colors no-underline">
+                Get Started Free
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a href="#features" class="inline-flex items-center gap-2 text-[#707080] hover:text-white font-medium px-6 py-3 rounded-lg border border-white/8 hover:border-white/15 text-sm transition-colors no-underline">
+                See How It Works
+              </a>
+            </div>
+          </div>
 
-        <!-- Hero Screenshot -->
-        <div class="hero-screenshot max-w-5xl mx-auto">
-          <img
-            src="/screenshots/filings-presentations.jpeg"
-            alt="Nullabroke filing search interface showing the query builder with 19 saved queries, SQL-like search syntax, and results for 8-K presentation filings"
-            class="w-full rounded-xl"
-            loading="eager"
-            width="1920"
-            height="1080"
-          />
+          <!-- Right: Floating Mockups (desktop) -->
+          <div class="hidden lg:block relative hero-mockups" aria-hidden="true">
+            <!-- Filing Results Mockup -->
+            <div class="mockup-card mockup-results">
+              <div class="mockup-header">
+                <span class="text-xs text-[#707080]">Search Results</span>
+                <span class="text-xs text-[#4ec9b0]">3 filings</span>
+              </div>
+              <div class="mockup-row">
+                <span class="mockup-ticker">MSFT</span>
+                <span class="mockup-badge mockup-badge-8k">8-K</span>
+                <span class="mockup-desc">Current Report — Earnings Release</span>
+                <span class="mockup-tag">Presentation</span>
+                <span class="mockup-date">Mar 12</span>
+              </div>
+              <div class="mockup-row">
+                <span class="mockup-ticker">AAPL</span>
+                <span class="mockup-badge mockup-badge-10k">10-K</span>
+                <span class="mockup-desc">Annual Report — FY2025</span>
+                <span class="mockup-tag">XBRL</span>
+                <span class="mockup-date">Feb 28</span>
+              </div>
+              <div class="mockup-row">
+                <span class="mockup-ticker">TSLA</span>
+                <span class="mockup-badge mockup-badge-def">DEF 14A</span>
+                <span class="mockup-desc">Proxy Statement — Annual Meeting</span>
+                <span class="mockup-tag">Proxy</span>
+                <span class="mockup-date">Feb 15</span>
+              </div>
+            </div>
+
+            <!-- Query Sidebar Mockup -->
+            <div class="mockup-card mockup-queries">
+              <div class="mockup-header">
+                <span class="text-xs text-[#707080]">Queries</span>
+              </div>
+              <div class="mockup-query-item">
+                <span class="mockup-query-icon" style="background: #e06c75;"></span>
+                <span class="mockup-query-name">Recent Earnings</span>
+                <span class="mockup-query-label">REC</span>
+              </div>
+              <div class="mockup-query-item">
+                <span class="mockup-query-icon" style="background: #61afef;"></span>
+                <span class="mockup-query-name">IPO Filings</span>
+                <span class="mockup-query-label">IPO</span>
+              </div>
+              <div class="mockup-query-item">
+                <span class="mockup-query-icon" style="background: #e5c07b;"></span>
+                <span class="mockup-query-name">Insider Ownership</span>
+                <span class="mockup-query-label">OWN</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile: Screenshot fallback -->
+          <div class="lg:hidden hero-screenshot">
+            <img
+              src="/screenshots/filings-presentations.jpeg"
+              alt="Nullabroke filing search interface showing the query builder with 19 saved queries, SQL-like search syntax, and results for 8-K presentation filings"
+              class="w-full rounded-xl"
+              loading="eager"
+              width="1920"
+              height="1080"
+            />
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Stats Bar -->
-    <section class="py-12 md:py-16 border-y border-white/5" aria-label="Platform highlights">
-      <div class="max-w-5xl mx-auto px-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
-          <div class="text-center">
-            <div class="text-2xl md:text-3xl font-bold text-white mb-1">19+</div>
-            <div class="text-xs md:text-sm text-[#707080]">Pre-built Queries</div>
+    <!-- Scrolling Marquee -->
+    <section class="py-6 border-y border-white/5 overflow-hidden" aria-label="Feature highlights marquee">
+      <div class="marquee-track">
+        <div class="marquee-content" aria-hidden="false">
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
+            Query Builder
           </div>
-          <div class="text-center">
-            <div class="text-2xl md:text-3xl font-bold text-white mb-1">Full</div>
-            <div class="text-xs md:text-sm text-[#707080]">EDGAR Coverage</div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+            EDGAR Coverage
           </div>
-          <div class="text-center">
-            <div class="text-2xl md:text-3xl font-bold text-white mb-1">XBRL</div>
-            <div class="text-xs md:text-sm text-[#707080]">Data Viewer</div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+            XBRL Data
           </div>
-          <div class="text-center">
-            <div class="text-2xl md:text-3xl font-bold text-white mb-1">100%</div>
-            <div class="text-xs md:text-sm text-[#707080]">Free to Use</div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+            Document Viewer
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>
+            19 Blueprints
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Real-Time Data
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            Save &amp; Pin
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            Mobile Ready
+          </div>
+        </div>
+        <!-- Duplicate for seamless loop -->
+        <div class="marquee-content" aria-hidden="true">
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
+            Query Builder
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+            EDGAR Coverage
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+            XBRL Data
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+            Document Viewer
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>
+            19 Blueprints
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Real-Time Data
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            Save &amp; Pin
+          </div>
+          <div class="marquee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            Mobile Ready
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats + Image -->
+    <section class="py-16 md:py-24" aria-label="Platform highlights">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div class="showcase-image-wrap">
+            <img
+              src="/screenshots/filings-presentations.jpeg"
+              alt="Nullabroke filing search interface showing the query builder with saved queries and search results"
+              class="showcase-img w-full"
+              loading="lazy"
+              width="1920"
+              height="1080"
+            />
+          </div>
+          <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-white mb-8">The numbers speak</h2>
+            <div class="space-y-8">
+              <div>
+                <div class="text-4xl md:text-5xl font-bold text-[#4ec9b0] mb-1">19+</div>
+                <div class="text-sm text-[#707080]">Pre-built blueprint queries for common SEC searches — IPOs, earnings, insider trades, and more.</div>
+              </div>
+              <div>
+                <div class="text-4xl md:text-5xl font-bold text-[#4ec9b0] mb-1">100%</div>
+                <div class="text-sm text-[#707080]">Full EDGAR coverage. Every filing type, every company, every document — searchable and readable.</div>
+              </div>
+              <div>
+                <div class="text-4xl md:text-5xl font-bold text-[#4ec9b0] mb-1">4</div>
+                <div class="text-sm text-[#707080]">Dynamic parameter types — dropdowns, text inputs, number inputs, and tag selectors built into your queries.</div>
+              </div>
+            </div>
+            <a href="#features" class="inline-flex items-center gap-2 text-[#4ec9b0] hover:text-[#7ee8d0] text-sm font-medium mt-8 transition-colors no-underline">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Features Grid -->
-    <section id="features" class="py-16 md:py-24" aria-label="Features">
+    <section id="features" class="py-16 md:py-24 border-t border-white/5" aria-label="Features">
       <div class="max-w-6xl mx-auto px-6">
         <div class="text-center mb-12 md:mb-16">
           <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Built for SEC research</h2>
           <p class="text-base text-[#707080] max-w-lg mx-auto">Everything you need to search, filter, and read SEC filings — without the noise.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
           <!-- Feature Card 1 -->
           <article class="feature-card">
-            <div class="feature-icon">
+            <div class="feature-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="8"/></svg>
             </div>
             <h3 class="text-base font-semibold text-white mb-2">Query Builder</h3>
@@ -110,7 +260,7 @@
 
           <!-- Feature Card 2 -->
           <article class="feature-card">
-            <div class="feature-icon">
+            <div class="feature-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>
             </div>
             <h3 class="text-base font-semibold text-white mb-2">19 Blueprint Queries</h3>
@@ -119,7 +269,7 @@
 
           <!-- Feature Card 3 -->
           <article class="feature-card">
-            <div class="feature-icon">
+            <div class="feature-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
             </div>
             <h3 class="text-base font-semibold text-white mb-2">Save & Organize</h3>
@@ -128,7 +278,7 @@
 
           <!-- Feature Card 4 -->
           <article class="feature-card">
-            <div class="feature-icon">
+            <div class="feature-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
             </div>
             <h3 class="text-base font-semibold text-white mb-2">Document Viewer</h3>
@@ -137,7 +287,7 @@
 
           <!-- Feature Card 5 -->
           <article class="feature-card">
-            <div class="feature-icon">
+            <div class="feature-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
             </div>
             <h3 class="text-base font-semibold text-white mb-2">XBRL Data Viewer</h3>
@@ -146,11 +296,29 @@
 
           <!-- Feature Card 6 -->
           <article class="feature-card">
-            <div class="feature-icon">
+            <div class="feature-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
             </div>
             <h3 class="text-base font-semibold text-white mb-2">Works on Any Device</h3>
             <p class="text-sm text-[#707080] leading-relaxed">Fully responsive on desktop, tablet, and mobile. Dark-themed for extended use. Sign in instantly with Google or GitHub.</p>
+          </article>
+
+          <!-- Feature Card 7 -->
+          <article class="feature-card">
+            <div class="feature-icon-circle">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+            </div>
+            <h3 class="text-base font-semibold text-white mb-2">Dynamic Parameters</h3>
+            <p class="text-sm text-[#707080] leading-relaxed">Embed dropdowns, text fields, number inputs, and tag selectors directly in your queries. Change inputs without rewriting SQL.</p>
+          </article>
+
+          <!-- Feature Card 8 -->
+          <article class="feature-card">
+            <div class="feature-icon-circle">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3 class="text-base font-semibold text-white mb-2">Real-Time EDGAR Data</h3>
+            <p class="text-sm text-[#707080] leading-relaxed">Queries run directly against the SEC EDGAR full-text search API. Results reflect the latest filings as they are published.</p>
           </article>
 
         </div>
@@ -158,7 +326,7 @@
     </section>
 
     <!-- Showcase 1: Query Builder -->
-    <section class="py-16 md:py-24 border-t border-white/5" aria-label="Query builder showcase">
+    <section id="how-it-works" class="py-16 md:py-24 border-t border-white/5" aria-label="Query builder showcase">
       <div class="max-w-6xl mx-auto px-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
@@ -296,7 +464,7 @@
     <!-- Bottom CTA -->
     <section class="py-16 md:py-24" aria-label="Get started">
       <div class="max-w-6xl mx-auto px-6">
-        <div class="cta-card text-center">
+        <div class="cta-card-v2 text-center">
           <div class="cta-glow" aria-hidden="true"></div>
           <div class="relative z-10">
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Ready to explore SEC filings?</h2>
@@ -312,15 +480,51 @@
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-white/5 py-10">
-    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#505060]">
-      <div class="flex items-center gap-2">
-        <img src="/logo.svg" alt="" class="w-5 h-5" width="20" height="20" aria-hidden="true" />
-        <span>Nullabroke</span>
+  <footer class="border-t border-white/5 py-12 md:py-16">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-10">
+        <!-- Col 1: Logo + Tagline -->
+        <div class="col-span-2 md:col-span-1">
+          <div class="flex items-center gap-2 mb-3">
+            <img src="/logo.svg" alt="" class="w-6 h-6" width="24" height="24" aria-hidden="true" />
+            <span class="text-white font-semibold">Nullabroke</span>
+          </div>
+          <p class="text-sm text-[#505060] leading-relaxed">Search, explore, and analyze SEC filings with powerful query-driven workflows.</p>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div>
+          <h4 class="text-xs font-semibold text-[#707080] uppercase tracking-wider mb-4">Quick Links</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#features" class="text-[#505060] hover:text-[#b0b0b8] transition-colors no-underline">Features</a></li>
+            <li><a href="#how-it-works" class="text-[#505060] hover:text-[#b0b0b8] transition-colors no-underline">How It Works</a></li>
+            <li><a routerLink="/auth" class="text-[#505060] hover:text-[#b0b0b8] transition-colors no-underline">Sign In</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Support -->
+        <div>
+          <h4 class="text-xs font-semibold text-[#707080] uppercase tracking-wider mb-4">Support</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a routerLink="/help" class="text-[#505060] hover:text-[#b0b0b8] transition-colors no-underline">Help</a></li>
+            <li><a href="https://github.com/nullabork/nullabroke-angular/issues" target="_blank" rel="noopener noreferrer" class="text-[#505060] hover:text-[#b0b0b8] transition-colors no-underline">GitHub Issues</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Stay Updated -->
+        <div>
+          <h4 class="text-xs font-semibold text-[#707080] uppercase tracking-wider mb-4">Stay Updated</h4>
+          <p class="text-sm text-[#505060] mb-4 leading-relaxed">Start searching SEC filings today — it's free.</p>
+          <a routerLink="/auth" class="inline-flex items-center gap-2 bg-[#4ec9b0] hover:bg-[#3db89f] text-[#060608] font-semibold px-5 py-2 rounded-lg text-xs transition-colors no-underline">
+            Get Started
+          </a>
+        </div>
       </div>
-      <div class="flex items-center gap-6">
-        <a routerLink="/help" class="hover:text-[#b0b0b8] transition-colors no-underline">Help</a>
-        <a href="https://github.com/nullabork/nullabroke-angular/issues" target="_blank" rel="noopener noreferrer" class="hover:text-[#b0b0b8] transition-colors no-underline">Issues</a>
+
+      <!-- Bottom bar -->
+      <div class="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#505060]">
+        <span>&copy; 2025 Nullabroke. All rights reserved.</span>
+        <span>Powered by EDGAR</span>
       </div>
     </div>
   </footer>
