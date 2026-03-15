@@ -49,7 +49,7 @@ describe('HomeComponent', () => {
     expect(h1?.textContent).toContain('precision');
   });
 
-  it('should render hero mockups on desktop and screenshot on mobile', () => {
+  it('should render hero floating mockups', () => {
     const el: HTMLElement = fixture.nativeElement;
     const mockups = el.querySelector('.hero-mockups');
     expect(mockups).toBeTruthy();
@@ -57,9 +57,6 @@ describe('HomeComponent', () => {
     expect(mockupResults).toBeTruthy();
     const mockupQueries = el.querySelector('.mockup-queries');
     expect(mockupQueries).toBeTruthy();
-    const heroImg = el.querySelector('.hero-screenshot img') as HTMLImageElement;
-    expect(heroImg).toBeTruthy();
-    expect(heroImg.src).toContain('filings-presentations');
   });
 
   it('should render the scrolling marquee with 8 items', () => {
