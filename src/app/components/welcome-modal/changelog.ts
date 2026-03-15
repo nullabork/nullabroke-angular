@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.4.0';
+export const APP_VERSION = '0.5.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,28 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.5.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'Document viewer URL now includes document number (e.g. /filings/document/xxx/1)',
+          'Clicking documents in sidebar updates the URL for sharing and bookmarking',
+          'Navigate directly to a specific document via URL',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Homepage redesigned with dark uniform card layout and teal accent theme',
+          'New stats bar highlighting platform features',
+          'Updated screenshots throughout the homepage',
+          'Google Tag Manager integration with custom events for search and document views',
+        ],
+      },
+    ],
+  },
   {
     version: '0.4.0',
     sections: [

@@ -11,7 +11,7 @@ import { Filing } from '../../../core/models/filing.model';
   imports: [RouterLink, DatePipe],
   template: `
     <a
-      [routerLink]="['/filings/document', filing().accessionNumber]"
+      [routerLink]="['/filings/document', filing().accessionNumber, 1]"
       class="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 w-full px-3 py-2 text-left hover:bg-[#2a2d2e] cursor-pointer no-underline"
       role="listitem"
     >

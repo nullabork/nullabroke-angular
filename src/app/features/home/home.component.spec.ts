@@ -45,34 +45,37 @@ describe('HomeComponent', () => {
     const el: HTMLElement = fixture.nativeElement;
     const h1 = el.querySelector('h1');
     expect(h1).toBeTruthy();
-    expect(h1?.textContent).toContain('Search SEC Filings');
-    expect(h1?.textContent).toContain('Like a Pro');
+    expect(h1?.textContent).toContain('Search and analyze');
+    expect(h1?.textContent).toContain('precision');
   });
 
   it('should render the hero screenshot', () => {
     const el: HTMLElement = fixture.nativeElement;
     const heroImg = el.querySelector('.hero-screenshot img') as HTMLImageElement;
     expect(heroImg).toBeTruthy();
-    expect(heroImg.src).toContain('filings-presentations.png');
+    expect(heroImg.src).toContain('filings-presentations');
     expect(heroImg.alt).toBeTruthy();
     expect(heroImg.alt.length).toBeGreaterThan(10);
   });
 
-  it('should render all four feature sections', () => {
+  it('should render all six feature cards', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const h3s = el.querySelectorAll('article h3');
-    expect(h3s.length).toBe(4);
+    const cards = el.querySelectorAll('.feature-card');
+    expect(cards.length).toBe(6);
+    const h3s = el.querySelectorAll('.feature-card h3');
     expect(h3s[0].textContent).toContain('Query Builder');
-    expect(h3s[1].textContent).toContain('Save & Organize');
-    expect(h3s[2].textContent).toContain('Document Viewer');
-    expect(h3s[3].textContent).toContain('Works Everywhere');
+    expect(h3s[1].textContent).toContain('Blueprint Queries');
+    expect(h3s[2].textContent).toContain('Save & Organize');
+    expect(h3s[3].textContent).toContain('Document Viewer');
+    expect(h3s[4].textContent).toContain('XBRL Data Viewer');
+    expect(h3s[5].textContent).toContain('Works on Any Device');
   });
 
-  it('should render feature screenshots with alt text and lazy loading', () => {
+  it('should render showcase screenshots with alt text and lazy loading', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const featureImgs = el.querySelectorAll('.feature-img') as NodeListOf<HTMLImageElement>;
-    expect(featureImgs.length).toBe(6);
-    featureImgs.forEach(img => {
+    const showcaseImgs = el.querySelectorAll('.showcase-img') as NodeListOf<HTMLImageElement>;
+    expect(showcaseImgs.length).toBe(4);
+    showcaseImgs.forEach(img => {
       expect(img.alt).toBeTruthy();
       expect(img.alt.length).toBeGreaterThan(10);
       expect(img.getAttribute('loading')).toBe('lazy');
@@ -91,7 +94,7 @@ describe('HomeComponent', () => {
     expect(el.querySelector('main')).toBeTruthy();
     expect(el.querySelector('footer')).toBeTruthy();
     expect(el.querySelector('nav')).toBeTruthy();
-    expect(el.querySelectorAll('article').length).toBe(4);
+    expect(el.querySelectorAll('article').length).toBe(6);
   });
 
   it('should have aria labels on navigation and sections', () => {
@@ -125,5 +128,14 @@ describe('HomeComponent', () => {
     const hrefs = Array.from(footerLinks).map(a => a.getAttribute('href') || a.getAttribute('ng-reflect-router-link'));
     expect(hrefs.some(h => h?.includes('help'))).toBe(true);
     expect(hrefs.some(h => h?.includes('issues'))).toBe(true);
+  });
+
+  it('should render the stats bar with platform highlights', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const statsSection = el.querySelector('section[aria-label="Platform highlights"]');
+    expect(statsSection).toBeTruthy();
+    expect(statsSection?.textContent).toContain('19+');
+    expect(statsSection?.textContent).toContain('EDGAR');
+    expect(statsSection?.textContent).toContain('Free');
   });
 });

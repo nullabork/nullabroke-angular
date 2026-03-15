@@ -8,6 +8,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -29,6 +30,7 @@ import {
   lucideImage,
 } from '@ng-icons/lucide';
 
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
 import { DocumentService } from '../../core/services/document.service';
@@ -87,17 +89,23 @@ interface IframeMessage {
   styleUrl: './document-viewer.component.css',
 })
 export class DocumentViewerComponent {
+  private readonly analytics = inject(AnalyticsService);
   private readonly appChrome = inject(AppChromeService);
   private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly filingService = inject(FilingService);
   private readonly documentService = inject(DocumentService);
   private readonly xbrlParser = inject(XbrlParserService);
   private readonly destroyRef = inject(DestroyRef);
 
-  // Convert route params to signal
+  // Convert route params to signals
   accessionNumber = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('accessionNumber'))),
+    { initialValue: null }
+  );
+  documentNumber = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('documentNumber'))),
     { initialValue: null }
   );
 
@@ -223,9 +231,15 @@ export class DocumentViewerComponent {
             });
             this.documents.set(viewableDocs);
 
-            // Auto-select the first document
+            // Select document based on URL param, or default to first
             if (viewableDocs.length > 0) {
-              this.selectDocument(viewableDocs[0]);
+              const docNum = this.documentNumber();
+              let selectedDoc = viewableDocs[0];
+              if (docNum) {
+                const match = viewableDocs.find(d => d.sequence?.toString() === docNum);
+                if (match) selectedDoc = match;
+              }
+              this.selectDocument(selectedDoc, true);
             }
           }
           this.loading.set(false);
@@ -238,8 +252,21 @@ export class DocumentViewerComponent {
       });
   }
 
-  selectDocument(doc: DocumentFile) {
+  selectDocument(doc: DocumentFile, replaceUrl = false) {
     this.selectedDocument.set(doc);
+
+    // Update URL to reflect selected document number
+    const accNum = this.accessionNumber();
+    if (accNum && doc.sequence != null) {
+      const seq = doc.sequence.toString();
+      const path = `/filings/document/${accNum}/${seq}`;
+      if (replaceUrl) {
+        this.location.replaceState(path);
+      } else {
+        this.location.go(path);
+      }
+      this.analytics.trackDocumentView(accNum, seq);
+    }
 
     if (this.isXbrlDocument(doc)) {
       this.enterXbrlMode();

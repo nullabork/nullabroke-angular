@@ -23,6 +23,12 @@ export const routes: Routes = [
       import('./features/filings/filing-search.component').then((m) => m.FilingSearchComponent),
   },
   {
+    path: 'filings/document/:accessionNumber/:documentNumber',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/document/document-viewer.component').then((m) => m.DocumentViewerComponent),
+  },
+  {
     path: 'filings/document/:accessionNumber',
     canActivate: [authGuard],
     loadComponent: () =>
