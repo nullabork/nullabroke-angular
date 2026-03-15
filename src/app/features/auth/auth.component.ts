@@ -75,21 +75,15 @@ import { ProfileComponent } from '../../components/auth/profile.component';
             <!-- Unauthenticated State -->
             <div class="card">
               <div class="logo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                  <polyline points="10 9 9 9 8 9"/>
-                </svg>
+                <img src="/logo.svg" alt="Nullabroke logo" width="48" height="48" />
               </div>
-              
+
               <h1 class="title">Nullabroke</h1>
-              <p class="subtitle">SEC Filing Viewer</p>
-              
+              <p class="subtitle">Search SEC Filings Like a Pro</p>
+
               <app-login-button />
-              
-              <p class="hint">Sign in to continue</p>
+
+              <p class="hint">Sign in with Google or GitHub to continue</p>
             </div>
           }
         }
@@ -104,7 +98,7 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       align-items: center;
       position: relative;
       overflow: hidden;
-      background: #1e1e1e;
+      background: #060608;
       padding-bottom: 28px;
     }
 
@@ -120,14 +114,14 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       position: absolute;
       border-radius: 50%;
       filter: blur(100px);
-      opacity: 0.25;
+      opacity: 0.15;
       animation: float 25s infinite ease-in-out;
     }
 
     .orb-1 {
       width: 600px;
       height: 600px;
-      background: #0e639c;
+      background: #4ec9b0;
       top: -250px;
       left: -200px;
     }
@@ -135,7 +129,7 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     .orb-2 {
       width: 500px;
       height: 500px;
-      background: #646695;
+      background: #4ec9b0;
       bottom: -200px;
       right: -150px;
       animation-delay: -10s;
@@ -175,10 +169,10 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     }
 
     .card {
-      background: #252526;
-      border: 1px solid #3c3c3c;
-      border-radius: 6px;
-      padding: 2rem;
+      background: #0c0c10;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 1rem;
+      padding: 2.5rem 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -193,29 +187,28 @@ import { ProfileComponent } from '../../components/auth/profile.component';
 
     /* Logo */
     .logo {
-      color: #0e639c;
       margin-bottom: 0.25rem;
     }
 
     /* Typography */
     .title {
       font-size: 1.5rem;
-      font-weight: 600;
-      color: #cccccc;
+      font-weight: 700;
+      color: #ffffff;
       margin: 0;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
     }
 
     .subtitle {
       font-size: 0.85rem;
-      color: #808080;
+      color: #707080;
       margin: 0;
       margin-top: -0.5rem;
     }
 
     .hint {
       font-size: 0.75rem;
-      color: #6e6e6e;
+      color: #505060;
       margin: 0;
       margin-top: 0.5rem;
     }
@@ -224,8 +217,8 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     .loading-spinner {
       width: 32px;
       height: 32px;
-      border: 2px solid #3c3c3c;
-      border-top-color: #0e639c;
+      border: 2px solid rgba(255, 255, 255, 0.06);
+      border-top-color: #4ec9b0;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -236,13 +229,13 @@ import { ProfileComponent } from '../../components/auth/profile.component';
 
     .loading-text {
       font-size: 0.85rem;
-      color: #808080;
+      color: #707080;
       margin: 0;
     }
 
     /* Error */
     .error-card {
-      border-color: #5a1d1d;
+      border-color: rgba(241, 76, 76, 0.2);
     }
 
     .error-icon {
@@ -252,13 +245,13 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     .error-title {
       font-size: 1rem;
       font-weight: 600;
-      color: #cccccc;
+      color: #ffffff;
       margin: 0;
     }
 
     .error-message {
       font-size: 0.8rem;
-      color: #808080;
+      color: #707080;
       margin: 0;
       text-align: center;
       word-break: break-word;
@@ -273,7 +266,7 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       color: #4ec9b0;
       padding: 0.35rem 0.75rem;
       background: rgba(78, 201, 176, 0.1);
-      border-radius: 3px;
+      border-radius: 0.5rem;
     }
 
     /* Buttons */
@@ -293,8 +286,8 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       gap: 0.5rem;
       padding: 0.6rem 1rem;
       font-size: 0.85rem;
-      font-weight: 500;
-      border-radius: 3px;
+      font-weight: 600;
+      border-radius: 0.5rem;
       text-decoration: none;
       transition: background 0.15s ease;
       cursor: pointer;
@@ -303,13 +296,13 @@ import { ProfileComponent } from '../../components/auth/profile.component';
     }
 
     .btn-primary {
-      background: #0e639c;
-      color: #ffffff;
+      background: #4ec9b0;
+      color: #060608;
       width: 100%;
     }
 
     .btn-primary:hover {
-      background: #1177bb;
+      background: #3db89f;
     }
 
     @media (max-width: 400px) {
@@ -318,7 +311,7 @@ import { ProfileComponent } from '../../components/auth/profile.component';
       }
 
       .card {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
       }
     }
   `],

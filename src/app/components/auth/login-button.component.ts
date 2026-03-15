@@ -22,23 +22,23 @@ import { AuthService } from '@auth0/auth0-angular';
       gap: 0.5rem;
       padding: 0.6rem 1.25rem;
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 600;
       font-family: inherit;
-      border-radius: 3px;
+      border-radius: 0.5rem;
       border: none;
       cursor: pointer;
       transition: background 0.15s ease;
-      background: #0e639c;
-      color: #ffffff;
+      background: #4ec9b0;
+      color: #060608;
       width: 100%;
     }
 
     .btn:hover {
-      background: #1177bb;
+      background: #3db89f;
     }
 
     .btn:focus {
-      outline: 1px solid #007fd4;
+      outline: 1px solid #4ec9b0;
       outline-offset: 2px;
     }
   `],

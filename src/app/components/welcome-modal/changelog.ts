@@ -24,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
           'New stats bar highlighting platform features',
           'Updated screenshots throughout the homepage',
           'Google Tag Manager integration with custom events for search and document views',
+          'Auth page redesigned to match homepage dark theme with teal accents and logo',
         ],
       },
     ],
