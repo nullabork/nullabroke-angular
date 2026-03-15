@@ -24,20 +24,21 @@ import { AuthService } from '@auth0/auth0-angular';
       font-size: 0.8rem;
       font-weight: 500;
       font-family: inherit;
-      border-radius: 3px;
-      border: 1px solid #3c3c3c;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       cursor: pointer;
       transition: all 0.15s ease;
       background: transparent;
-      color: #cccccc;
+      color: #b0b0b8;
     }
 
     .btn:hover {
-      background: #3c3c3c;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .btn:focus {
-      outline: 1px solid #007fd4;
+      outline: 1px solid #4ec9b0;
       outline-offset: 2px;
     }
   `],
