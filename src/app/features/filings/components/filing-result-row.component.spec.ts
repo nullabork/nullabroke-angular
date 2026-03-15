@@ -133,7 +133,7 @@ describe('FilingResultRowComponent', () => {
   it('should have routerLink to correct document URL', async () => {
     await setupTest();
     const link = fixture.nativeElement.querySelector('a');
-    expect(link.getAttribute('href')).toBe('/filings/document/0001234567-24-000001');
+    expect(link.getAttribute('href')).toBe('/filings/document/0001234567-24-000001/1');
   });
 
   it('should use grid layout with 3 columns', async () => {

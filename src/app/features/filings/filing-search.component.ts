@@ -26,6 +26,7 @@ import { FilingService } from '../../core/services/filing.service';
 import { SavedQueriesService } from '../../core/services/saved-queries.service';
 import { Filing } from '../../core/models/filing.model';
 import { SavedQuery } from '../../core/models/query-parameter.model';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { QueryParametersComponent } from '../../components/query-builder';
 import {
   FilingStatusBarComponent,
@@ -71,6 +72,7 @@ export class FilingSearchComponent {
   private readonly appChrome = inject(AppChromeService);
   private readonly filingService = inject(FilingService);
   private readonly savedQueriesService = inject(SavedQueriesService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -234,6 +236,7 @@ export class FilingSearchComponent {
           this.results.set(filings ?? []);
           this.loading.set(false);
           this.stopLogoAfterAnimation(animStart, ANIM_DURATION);
+          this.analytics.trackSearch(this.titleText(), (filings ?? []).length);
         },
         error: () => {
           this.results.set([]);
@@ -247,6 +250,7 @@ export class FilingSearchComponent {
   newQuery() {
     this.savedQueriesService.newQuery();
     this.queryControl.setValue('', { emitEvent: false });
+    this.analytics.trackNewQuery();
   }
 
   selectSavedQuery(guid: string) {
