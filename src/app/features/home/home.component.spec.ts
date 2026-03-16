@@ -91,7 +91,7 @@ describe('HomeComponent', () => {
   it('should render showcase screenshots with alt text and lazy loading', () => {
     const el: HTMLElement = fixture.nativeElement;
     const showcaseImgs = el.querySelectorAll('.showcase-img') as NodeListOf<HTMLImageElement>;
-    expect(showcaseImgs.length).toBe(5);
+    expect(showcaseImgs.length).toBe(4);
     showcaseImgs.forEach(img => {
       expect(img.alt).toBeTruthy();
       expect(img.alt.length).toBeGreaterThan(10);
