@@ -24,13 +24,15 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
 import { SavedQueriesService } from '../../core/services/saved-queries.service';
+import { StringsService } from '../../core/services/strings.service';
 import { Filing } from '../../core/models/filing.model';
 import { SavedQuery } from '../../core/models/query-parameter.model';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { ColumnState } from 'ag-grid-community';
 import { QueryParametersComponent } from '../../components/query-builder';
 import {
   FilingStatusBarComponent,
-  FilingResultRowComponent,
+  FilingResultsGridComponent,
   FilingQueryEditorComponent,
   FilingQueryItemComponent,
 } from './components';
@@ -50,7 +52,7 @@ import {
     HlmButtonImports,
     QueryParametersComponent,
     FilingStatusBarComponent,
-    FilingResultRowComponent,
+    FilingResultsGridComponent,
     FilingQueryEditorComponent,
     FilingQueryItemComponent,
   ],
@@ -75,6 +77,7 @@ export class FilingSearchComponent {
   private readonly analytics = inject(AnalyticsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly stringsService = inject(StringsService);
   private readonly destroyRef = inject(DestroyRef);
 
   queryControl = new FormControl<string>(
@@ -154,10 +157,28 @@ export class FilingSearchComponent {
   // Delete confirmation state
   deleteConfirmGuid = signal<string | null>(null);
 
+  // Pre-fetched grid column state (loaded eagerly on page mount)
+  gridColumnState = signal<ColumnState[] | null>(null);
+  gridStateLoaded = signal(false);
+
 
   constructor() {
     this.appChrome.visible.set(true);
     this.destroyRef.onDestroy(() => this.appChrome.visible.set(false));
+
+    // Eagerly fetch grid column state so the grid doesn't shift on first render
+    this.stringsService
+      .getJson<ColumnState[]>('filing-grid-column-state')
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (state) => {
+          this.gridColumnState.set(state ?? null);
+          this.gridStateLoaded.set(true);
+        },
+        error: () => {
+          this.gridStateLoaded.set(true);
+        },
+      });
 
     // Initialize query control from service state
     const currentQuery = this.savedQueriesService.currentQuery();

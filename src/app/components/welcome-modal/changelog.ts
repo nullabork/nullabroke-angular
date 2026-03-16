@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.5.0';
+export const APP_VERSION = '0.6.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,30 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.6.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'AG Grid data table for filing search results with all filing fields as columns',
+          'Drag-to-reorder columns, resize column widths, and pin columns left or right',
+          'Custom right-click context menu on column headers: Pin Left, Pin Right, No Pin, Autosize, Hide',
+          'Columns toolbar dropdown to toggle column visibility with Show All and Reset options',
+          'Grid column state (order, widths, visibility, pinning, sort) persisted via Strings API',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Grid settings pre-fetched on page load and baked into column definitions to eliminate layout shift',
+          'Status bar simplified: removed Auth0 ID and email, kept logout and action buttons',
+          'AG Grid styled to match VS Code dark theme with custom colors, scrollbars, and context menus',
+          'Homepage query showcase replaced screenshot with teal-accented cheatsheet cards',
+        ],
+      },
+    ],
+  },
   {
     version: '0.5.0',
     sections: [

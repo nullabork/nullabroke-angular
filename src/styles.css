@@ -156,3 +156,73 @@ body {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
 }
+
+/* AG Grid VSCode dark theme overrides */
+.ag-theme-quartz,
+.ag-theme-quartz-dark {
+  --ag-row-hover-color: #2a2d2e;
+  --ag-selected-row-background-color: #37373d;
+  --ag-range-selection-border-color: #007acc;
+  --ag-input-focus-border-color: #007acc;
+  --ag-checkbox-checked-color: #007acc;
+  --ag-column-hover-color: #2a2d2e;
+  --ag-header-column-separator-color: #3c3c3c;
+  --ag-row-border-color: #2d2d2d;
+  --ag-modal-overlay-background-color: rgba(30, 30, 30, 0.8);
+}
+
+/* AG Grid row pointer cursor */
+.ag-row {
+  cursor: pointer;
+}
+
+/* AG Grid header text uppercase */
+.ag-header-cell-text {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* AG Grid context menu dark styling */
+.ag-menu {
+  background: #252526 !important;
+  border-color: #3c3c3c !important;
+}
+
+.ag-menu-option-active {
+  background: #2a2d2e !important;
+}
+
+.ag-menu-option-text {
+  color: #cccccc !important;
+}
+
+/* AG Grid filter panel dark styling */
+.ag-filter {
+  background: #252526 !important;
+}
+
+.ag-filter input,
+.ag-filter select {
+  background: #3c3c3c !important;
+  color: #cccccc !important;
+  border-color: #555555 !important;
+}
+
+/* AG Grid column drag ghost */
+.ag-dnd-ghost {
+  background: #252526 !important;
+  border-color: #007acc !important;
+  color: #cccccc !important;
+}
+
+/* AG Grid pinned column shadow */
+.ag-pinned-left-header,
+.ag-pinned-left-cols-container {
+  border-right: 1px solid #007acc40;
+}
+
+/* AG Grid no-rows overlay */
+.ag-overlay-no-rows-wrapper {
+  color: #6e6e6e;
+}

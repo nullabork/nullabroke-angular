@@ -343,15 +343,39 @@
               </li>
             </ul>
           </div>
-          <div class="showcase-image-wrap">
-            <img
-              src="/screenshots/filings-desktop-results.jpeg"
-              alt="Search results showing filing descriptions with ticker symbols, form type badges, tags like Presentation and XBRL, and filing dates"
-              class="showcase-img w-full"
-              loading="lazy"
-              width="1567"
-              height="558"
-            />
+          <div class="grid grid-cols-2 gap-3">
+            <div class="cheat-card">
+              <div class="cheat-label">Basic filter</div>
+              <code class="cheat-code">form_type = '10-K' limit 25</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">Multiple values</div>
+              <code class="cheat-code">form_type in ('10-K','10-Q','8-K')</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">Wildcard search</div>
+              <code class="cheat-code">company_name ilike '%Microsoft%'</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">Sort &amp; limit</div>
+              <code class="cheat-code">order by snowflake desc limit 50</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">Tags filter</div>
+              <code class="cheat-code">array['Presentation'] &amp;&amp; tags</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">Subquery (by ticker)</div>
+              <code class="cheat-code">cik = (select cik from ticker where ticker ilike 'MSFT')</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">Negation</div>
+              <code class="cheat-code">form_type not in ('3','4','5')</code>
+            </div>
+            <div class="cheat-card">
+              <div class="cheat-label">With parameter</div>
+              <code class="cheat-code">form_type = &#123;Type:FormTypes:8-K&#125;</code>
+            </div>
           </div>
         </div>
       </div>
