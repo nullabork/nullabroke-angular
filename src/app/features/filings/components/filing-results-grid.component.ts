@@ -32,6 +32,45 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const GRID_STATE_KEY = 'filing-grid-column-state';
 
+function hash32(str: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h;
+}
+
+function mixHash(a: number, b: number): number {
+  let h = a ^ b;
+  h = Math.imul(h ^ (h >>> 16), 0x45d9f3b) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x45d9f3b) >>> 0;
+  return h ^ (h >>> 16);
+}
+
+const tagColorCache = new Map<string, string>();
+
+function tagColor(str: string): string {
+  const key = str.trim().toLowerCase();
+  let color = tagColorCache.get(key);
+  if (color) return color;
+
+  const h = mixHash(hash32(key), hash32('14'));
+  const hue = (h % 360 + 360) % 360;
+  const sat = 68 + ((h >> 8) % 22);
+  const lig = 74 + ((h >> 16) % 10);
+  const s = sat / 100, l = lig / 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + hue / 30) % 12;
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  color = `#${f(0)}${f(8)}${f(4)}`;
+  tagColorCache.set(key, color);
+  return color;
+}
+
 interface ColumnInfo {
   colId: string;
   headerName: string;
@@ -388,6 +427,22 @@ export class FilingResultsGridComponent implements OnInit {
   columnList = signal<ColumnInfo[]>([]);
   headerContextMenu = signal<{ x: number; y: number; colId: string; headerName: string } | null>(null);
 
+  @HostListener('mousedown', ['$event'])
+  onMouseDown(event: MouseEvent): void {
+    if (event.button !== 1) return; // only middle click
+    const row = (event.target as HTMLElement).closest('.ag-row');
+    if (!row) return;
+    // Prevent browser auto-scroll and AG Grid's middle-click handling
+    event.preventDefault();
+    const rowIndex = row.getAttribute('row-index');
+    if (rowIndex == null) return;
+    const rowNode = this.gridApi?.getDisplayedRowAtIndex(Number(rowIndex));
+    const filing = rowNode?.data as Filing | undefined;
+    if (filing?.accessionNumber) {
+      window.open(`/filings/document/${filing.accessionNumber}/1`, '_blank');
+    }
+  }
+
   @HostListener('contextmenu', ['$event'])
   onHostContextMenu(event: MouseEvent): void {
     const headerCell = (event.target as HTMLElement).closest('.ag-header-cell');
@@ -437,6 +492,7 @@ export class FilingResultsGridComponent implements OnInit {
 
   /** Base column definitions — order/widths/visibility may be overridden by saved state */
   private readonly baseColumnDefs: ColDef<Filing>[] = [
+    // --- Default visible columns (in order) ---
     {
       field: 'ticker',
       headerName: 'Ticker',
@@ -451,22 +507,55 @@ export class FilingResultsGridComponent implements OnInit {
       },
     },
     {
+      field: 'formType',
+      headerName: 'Form',
+      width: 90,
+      cellStyle: { color: '#61afef', fontWeight: '500' },
+    },
+    {
       field: 'companyConformedName',
       headerName: 'Company',
       width: 220,
       flex: 1,
     },
     {
-      field: 'formType',
-      headerName: 'Form Type',
-      width: 110,
+      field: 'tags',
+      headerName: 'Tags',
+      width: 180,
+      sortable: false,
+      filter: false,
       cellRenderer: (params: ICellRendererParams) => {
-        if (!params.value) return '';
-        const span = document.createElement('span');
-        span.textContent = params.value;
-        span.style.cssText =
-          'display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;background:#0e639c;color:white;border-radius:2px;';
-        return span;
+        if (!params.value?.length) return '';
+        const container = document.createElement('div');
+        container.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden;';
+        for (const tag of params.value) {
+          const color = tagColor(tag);
+          const item = document.createElement('span');
+          item.style.cssText = `display:inline-flex;align-items:center;gap:3px;white-space:nowrap;color:${color};font-size:12px;`;
+          // Tiny tag icon (SVG)
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', '10');
+          svg.setAttribute('height', '10');
+          svg.setAttribute('viewBox', '0 0 24 24');
+          svg.setAttribute('fill', 'none');
+          svg.setAttribute('stroke', color);
+          svg.setAttribute('stroke-width', '2.5');
+          svg.setAttribute('stroke-linecap', 'round');
+          svg.setAttribute('stroke-linejoin', 'round');
+          svg.style.cssText = 'flex-shrink:0;';
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z');
+          svg.appendChild(path);
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', '7.5');
+          circle.setAttribute('cy', '7.5');
+          circle.setAttribute('r', '1');
+          svg.appendChild(circle);
+          item.appendChild(svg);
+          item.appendChild(document.createTextNode(tag));
+          container.appendChild(item);
+        }
+        return container;
       },
     },
     {
@@ -483,49 +572,6 @@ export class FilingResultsGridComponent implements OnInit {
         params.value ? new Date(params.value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
     },
     {
-      field: 'datePublished',
-      headerName: 'Date Published',
-      width: 130,
-      valueFormatter: (params: ValueFormatterParams) =>
-        params.value ? new Date(params.value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
-    },
-    {
-      field: 'tags',
-      headerName: 'Tags',
-      width: 180,
-      sortable: false,
-      filter: false,
-      cellRenderer: (params: ICellRendererParams) => {
-        if (!params.value?.length) return '';
-        const container = document.createElement('div');
-        container.style.cssText = 'display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow:hidden;';
-        for (const tag of params.value) {
-          const span = document.createElement('span');
-          span.textContent = tag;
-          span.style.cssText =
-            'display:inline-block;padding:1px 6px;font-size:10px;font-weight:500;background:#333333;color:#a0a0a0;border-radius:3px;white-space:nowrap;';
-          container.appendChild(span);
-        }
-        return container;
-      },
-    },
-    {
-      field: 'accessionNumber',
-      headerName: 'Accession #',
-      width: 200,
-      cellStyle: { fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: '12px' },
-    },
-    {
-      field: 'centralIndexKey',
-      headerName: 'CIK',
-      width: 100,
-    },
-    {
-      field: 'relationship',
-      headerName: 'Relationship',
-      width: 130,
-    },
-    {
       field: 'size',
       headerName: 'Size',
       width: 100,
@@ -536,74 +582,115 @@ export class FilingResultsGridComponent implements OnInit {
         return `${(kb / 1024).toFixed(1)} MB`;
       },
     },
+    // --- Hidden by default ---
+    {
+      field: 'datePublished',
+      headerName: 'Date Published',
+      width: 130,
+      hide: true,
+      valueFormatter: (params: ValueFormatterParams) =>
+        params.value ? new Date(params.value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '',
+    },
+    {
+      field: 'accessionNumber',
+      headerName: 'Accession #',
+      width: 200,
+      hide: true,
+      cellStyle: { fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: '12px' },
+    },
+    {
+      field: 'centralIndexKey',
+      headerName: 'CIK',
+      width: 100,
+      hide: true,
+    },
+    {
+      field: 'relationship',
+      headerName: 'Relationship',
+      width: 130,
+      hide: true,
+    },
     {
       field: 'documentCount',
       headerName: 'Docs',
       width: 80,
+      hide: true,
     },
     {
       field: 'fileNumber',
       headerName: 'File #',
       width: 120,
+      hide: true,
     },
     {
       field: 'filmNumber',
       headerName: 'Film #',
       width: 120,
+      hide: true,
     },
     {
       field: 'isAmendment',
       headerName: 'Amendment',
       width: 110,
+      hide: true,
       valueFormatter: (params: ValueFormatterParams) => (params.value ? 'Yes' : 'No'),
     },
     {
       field: 'isAmended',
       headerName: 'Amended',
       width: 100,
+      hide: true,
       valueFormatter: (params: ValueFormatterParams) => (params.value ? 'Yes' : 'No'),
     },
     {
       field: 'amendedAccessionNumber',
       headerName: 'Amended Accession #',
       width: 200,
+      hide: true,
     },
     {
       field: 'amendmentAccessionNumber',
       headerName: 'Amendment Accession #',
       width: 200,
+      hide: true,
     },
     {
       field: 'sponsorCIK',
       headerName: 'Sponsor CIK',
       width: 120,
+      hide: true,
     },
     {
       field: 'fileName',
       headerName: 'File Name',
       width: 180,
+      hide: true,
     },
     {
       field: 'snowflakeId',
       headerName: 'Snowflake ID',
       width: 160,
+      hide: true,
     },
     {
       field: 'noDocument',
       headerName: 'No Document',
       width: 120,
+      hide: true,
       valueFormatter: (params: ValueFormatterParams) => (params.value ? 'Yes' : 'No'),
     },
     {
       field: 'isEmpty',
       headerName: 'Empty',
       width: 90,
+      hide: true,
       valueFormatter: (params: ValueFormatterParams) => (params.value ? 'Yes' : 'No'),
     },
     {
       field: 'id',
       headerName: 'ID',
       width: 80,
+      hide: true,
     },
   ];
 
