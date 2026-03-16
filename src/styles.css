@@ -176,6 +176,12 @@ body {
   cursor: pointer;
 }
 
+/* AG Grid cell vertical centering */
+.ag-cell {
+  display: flex !important;
+  align-items: center !important;
+}
+
 /* AG Grid header text uppercase */
 .ag-header-cell-text {
   text-transform: uppercase;
