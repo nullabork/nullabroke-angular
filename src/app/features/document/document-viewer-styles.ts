@@ -21,8 +21,8 @@ body {
   margin: 0;
   padding: 32px 40px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  font-size: 14px !important;
-  line-height: 1.65 !important;
+  font-size: 16px !important;
+  line-height: 1.75 !important;
   color: #d4d4d4 !important;
   background-color: #1e1e1e !important;
   -webkit-font-smoothing: antialiased;
@@ -33,14 +33,14 @@ body {
 
 /* ===== Override SEC Inline Styles ===== */
 span, p, div, td, th, tr, li, a, b, i, u, em, strong, font,
-span[style], p[style], div[style], td[style], th[style], font[style] {
+table, tbody, thead, tfoot,
+span[style], p[style], div[style], td[style], th[style], tr[style],
+table[style], font[style] {
   font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
   color: inherit !important;
   background-color: transparent !important;
-}
-
-font {
-  font-size: inherit !important;
 }
 
 /* ===== Typography ===== */
@@ -95,13 +95,11 @@ th {
   text-align: left;
   padding: 8px 12px;
   border: 1px solid #3c3c3c;
-  font-size: 13px;
 }
 
 td {
   padding: 6px 12px;
   border: 1px solid #2d2d2d;
-  font-size: 13px;
   vertical-align: top;
   color: #cccccc !important;
 }

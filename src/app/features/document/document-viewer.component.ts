@@ -462,6 +462,16 @@ export class DocumentViewerComponent {
    * Inject base href, reset CSS, theme styles, and postMessage script into raw HTML.
    */
   private injectDocumentStyles(html: string, accessionNumber: string): string {
+    // Strip inline font declarations that override our stylesheet.
+    // SEC filings use `font: 10pt Times New Roman, Times, Serif` on nearly every element.
+    html = html.replace(/(<[^>]+\s)style="([^"]*)"/gi, (_match, tag: string, styles: string) => {
+      const cleaned = styles
+        .replace(/\bfont\s*:[^;]*(;|$)/gi, '$1')
+        .replace(/\bfont-family\s*:[^;]*(;|$)/gi, '$1')
+        .replace(/\bfont-size\s*:[^;]*(;|$)/gi, '$1');
+      return `${tag}style="${cleaned}"`;
+    });
+
     const baseHref = this.documentService.getDocumentUrl(accessionNumber, '');
     const injection =
       `<base href="${baseHref}">` +
