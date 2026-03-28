@@ -9,6 +9,7 @@ import {
   lucidePencil,
   lucideTrash2,
   lucideRotateCcw,
+  lucideExternalLink,
 } from '@ng-icons/lucide';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -30,6 +31,7 @@ import { SavedQuery } from '../../../core/models/query-parameter.model';
       lucidePencil,
       lucideTrash2,
       lucideRotateCcw,
+      lucideExternalLink,
     }),
   ],
   template: `
@@ -108,6 +110,9 @@ import { SavedQuery } from '../../../core/models/query-parameter.model';
                 <ng-icon [name]="query().pinned ? 'lucidePinOff' : 'lucidePin'" class="mr-2" />
                 {{ query().pinned ? 'Unpin' : 'Pin' }}
               </button>
+              <button hlmDropdownMenuItem (click)="openInNewTab.emit(guid())" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
+                <ng-icon name="lucideExternalLink" class="mr-2" /> Open in New Tab
+              </button>
               @if (isBlueprint()) {
                 <button hlmDropdownMenuItem (click)="resetBlueprint.emit(guid())" class="text-[#cccccc] hover:bg-[#3c3c3c] focus:bg-[#3c3c3c]">
                   <ng-icon name="lucideRotateCcw" class="mr-2" /> Reset
@@ -151,6 +156,7 @@ export class FilingQueryItemComponent {
   readonly duplicate = output<string>();
   readonly rename = output<string>();
   readonly deleteQuery = output<string>();
+  readonly openInNewTab = output<string>();
   readonly resetBlueprint = output<string>();
   readonly renameKeydown = output<KeyboardEvent>();
   readonly saveRename = output<void>();

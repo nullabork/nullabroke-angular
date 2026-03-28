@@ -7,6 +7,7 @@ import {
   inject,
   input,
   OnInit,
+  output,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -173,6 +174,38 @@ interface ColumnInfo {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
             Hide Column
           </button>
+        </div>
+      }
+
+      <!-- Right-click context menu for rows -->
+      @if (rowContextMenu()) {
+        <div class="ctx-backdrop" (click)="closeRowContextMenu()" (contextmenu)="$event.preventDefault(); closeRowContextMenu()"></div>
+        <div
+          class="ctx-menu"
+          [style.left.px]="rowContextMenu()!.x"
+          [style.top.px]="rowContextMenu()!.y"
+        >
+          <div class="ctx-menu-header">{{ rowContextMenu()!.filing.ticker || rowContextMenu()!.filing.companyConformedName || 'Filing' }}</div>
+          <button class="ctx-menu-item" (click)="copyCellValue()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            Copy Cell
+          </button>
+          <button class="ctx-menu-item" (click)="copyRowData()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            Copy Row
+          </button>
+          <div class="ctx-menu-separator"></div>
+          @if (favoriteIds().has(rowContextMenu()!.filing.id)) {
+            <button class="ctx-menu-item" (click)="onRemoveFromFavorites()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+              Remove from Favorites
+            </button>
+          } @else {
+            <button class="ctx-menu-item" (click)="onAddToFavorites()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+              Add to Favorites
+            </button>
+          }
         </div>
       }
     </div>
@@ -419,6 +452,10 @@ export class FilingResultsGridComponent implements OnInit {
 
   readonly rowData = input.required<Filing[]>();
   readonly initialColumnState = input<ColumnState[] | null>(null);
+  readonly favoriteIds = input<Set<number>>(new Set());
+
+  readonly addToFavorites = output<number>();
+  readonly removeFromFavorites = output<number>();
 
   private gridApi!: GridApi;
   private readonly saveState$ = new Subject<void>();
@@ -426,6 +463,7 @@ export class FilingResultsGridComponent implements OnInit {
   showColumnPanel = signal(false);
   columnList = signal<ColumnInfo[]>([]);
   headerContextMenu = signal<{ x: number; y: number; colId: string; headerName: string } | null>(null);
+  rowContextMenu = signal<{ x: number; y: number; filing: Filing; colId: string | null } | null>(null);
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent): void {
@@ -445,7 +483,10 @@ export class FilingResultsGridComponent implements OnInit {
 
   @HostListener('contextmenu', ['$event'])
   onHostContextMenu(event: MouseEvent): void {
-    const headerCell = (event.target as HTMLElement).closest('.ag-header-cell');
+    const target = event.target as HTMLElement;
+
+    // Header context menu
+    const headerCell = target.closest('.ag-header-cell');
     if (headerCell) {
       event.preventDefault();
       const colId = headerCell.getAttribute('col-id');
@@ -458,6 +499,21 @@ export class FilingResultsGridComponent implements OnInit {
           headerName: (colDef?.headerName as string) || colId,
         });
       }
+      return;
+    }
+
+    // Row context menu
+    const row = target.closest('.ag-row');
+    if (row && this.gridApi) {
+      event.preventDefault();
+      const rowIndex = row.getAttribute('row-index');
+      if (rowIndex == null) return;
+      const rowNode = this.gridApi.getDisplayedRowAtIndex(Number(rowIndex));
+      const filing = rowNode?.data as Filing | undefined;
+      if (!filing) return;
+      const cell = target.closest('.ag-cell');
+      const colId = cell?.getAttribute('col-id') ?? null;
+      this.rowContextMenu.set({ x: event.clientX, y: event.clientY, filing, colId });
     }
   }
 
@@ -795,6 +851,50 @@ export class FilingResultsGridComponent implements OnInit {
 
   closeContextMenu(): void {
     this.headerContextMenu.set(null);
+  }
+
+  closeRowContextMenu(): void {
+    this.rowContextMenu.set(null);
+  }
+
+  copyCellValue(): void {
+    const ctx = this.rowContextMenu();
+    if (!ctx) return;
+    let value = '';
+    if (ctx.colId) {
+      const raw = (ctx.filing as unknown as Record<string, unknown>)[ctx.colId];
+      value = Array.isArray(raw) ? raw.join(', ') : String(raw ?? '');
+    }
+    navigator.clipboard.writeText(value);
+    this.closeRowContextMenu();
+  }
+
+  copyRowData(): void {
+    const ctx = this.rowContextMenu();
+    if (!ctx || !this.gridApi) return;
+    const visibleCols = this.gridApi.getColumnState().filter(c => !c.hide);
+    const values = visibleCols.map(c => {
+      const raw = (ctx.filing as unknown as Record<string, unknown>)[c.colId];
+      return Array.isArray(raw) ? raw.join(', ') : String(raw ?? '');
+    });
+    navigator.clipboard.writeText(values.join('\t'));
+    this.closeRowContextMenu();
+  }
+
+  onAddToFavorites(): void {
+    const ctx = this.rowContextMenu();
+    if (ctx) {
+      this.addToFavorites.emit(ctx.filing.id);
+    }
+    this.closeRowContextMenu();
+  }
+
+  onRemoveFromFavorites(): void {
+    const ctx = this.rowContextMenu();
+    if (ctx) {
+      this.removeFromFavorites.emit(ctx.filing.id);
+    }
+    this.closeRowContextMenu();
   }
 
   contextPinColumn(direction: 'left' | 'right' | null): void {

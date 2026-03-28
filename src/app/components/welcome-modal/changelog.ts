@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.7.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,29 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.7.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'Tabbed query interface: keep multiple queries open simultaneously with VS Code-style tabs',
+          'Open in New Tab option in query three-dot menu',
+          'Favorites system: right-click any filing row to add/remove favorites',
+          'Favorites tab shows bookmarked filings with cached results and background refresh',
+          'Right-click context menu on table rows: Copy Cell, Copy Row, Add/Remove Favorites',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Tabs persist across page reloads via Strings API; queries lazy-load on first tab switch',
+          'In-flight queries cancelled on tab switch to prevent results landing in wrong tab',
+          'Styled viewer strips inline font declarations from SEC HTML for consistent app typography and larger text',
+        ],
+      },
+    ],
+  },
   {
     version: '0.6.0',
     sections: [
@@ -36,7 +59,6 @@ export const CHANGELOG: ChangelogEntry[] = [
           'Fixed document viewer page mode content collapsing to a short height instead of filling the viewport',
           'Fixed white bars appearing on sides of document in experimental viewer with page view mode',
           'Moved viewer settings (Styled/Page toggles) from dropdown menu to inline toggle buttons in the top bar',
-          'Styled viewer strips inline font declarations from SEC HTML for consistent app typography and larger text',
         ],
       },
     ],
