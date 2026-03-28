@@ -1,25 +1,47 @@
 <div class="h-screen flex flex-col bg-[#1e1e1e] text-[#cccccc]">
   <!-- Top Bar -->
-  <header class="flex-none h-9 flex items-center justify-between px-2 bg-[#252526] border-b border-[#3c3c3c]">
-    <div class="flex items-center gap-2">
-      <a
-        routerLink="/filings"
-        class="flex items-center justify-center w-7 h-7 text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]"
-        title="Back to search"
+  <header class="flex-none h-9 flex items-center px-2 bg-[#252526] border-b border-[#3c3c3c] gap-2 overflow-hidden">
+    <a
+      routerLink="/filings"
+      class="flex items-center justify-center w-7 h-7 flex-none text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]"
+      title="Back to search"
+    >
+      <ng-icon name="lucideArrowLeft" class="text-[16px]" />
+    </a>
+    <span class="text-[13px] text-[#3c3c3c] flex-none">|</span>
+    @if (filing()) {
+      <span class="text-[13px] truncate min-w-0">{{ filing()!.companyConformedName }}</span>
+      <span class="px-1 py-0 text-[10px] font-medium bg-[#0e639c] text-white flex-none whitespace-nowrap">
+        {{ filing()!.formType }}
+      </span>
+    } @else {
+      <span class="text-[13px] text-[#858585]">Loading...</span>
+    }
+    <div class="flex items-center gap-2 ml-auto flex-none">
+      <!-- Viewer toggles -->
+      <button
+        (click)="toggleExperimentalViewer()"
+        class="flex items-center gap-1.5 text-[11px] px-1.5 py-0.5"
+        [class]="experimentalViewer() ? 'text-white bg-[#0e639c]' : 'text-[#858585] hover:text-[#cccccc]'"
+        title="Experimental Viewer"
       >
-        <ng-icon name="lucideArrowLeft" class="text-[16px]" />
-      </a>
+        <span class="inline-block w-2 h-2 rounded-full flex-none"
+          [class]="experimentalViewer() ? 'bg-white' : 'bg-[#555]'"
+        ></span>
+        Styled
+      </button>
+      <button
+        (click)="togglePageViewMode()"
+        class="flex items-center gap-1.5 text-[11px] px-1.5 py-0.5"
+        [class]="pageViewMode() ? 'text-white bg-[#0e639c]' : 'text-[#858585] hover:text-[#cccccc]'"
+        title="Page View"
+      >
+        <span class="inline-block w-2 h-2 rounded-full flex-none"
+          [class]="pageViewMode() ? 'bg-white' : 'bg-[#555]'"
+        ></span>
+        Page
+      </button>
       <span class="text-[13px] text-[#3c3c3c]">|</span>
-      @if (filing()) {
-        <span class="text-[13px]">{{ filing()!.companyConformedName }}</span>
-        <span class="px-1 py-0 text-[10px] font-medium bg-[#0e639c] text-white">
-          {{ filing()!.formType }}
-        </span>
-      } @else {
-        <span class="text-[13px] text-[#858585]">Loading...</span>
-      }
-    </div>
-    <div class="flex items-center gap-1">
       <button
         (click)="toggleSidebar()"
         class="flex items-center justify-center w-7 h-7 text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c]"
@@ -178,21 +200,34 @@
         </div>
       } @else if (iframeSrc()) {
         <!-- Document Frame Container -->
-        <div class="flex-1 relative overflow-auto bg-white">
+        <div
+          class="flex-1 relative overflow-auto"
+          [class.page-view-container]="pageViewMode()"
+          [class.bg-white]="!pageViewMode() && !experimentalViewer()"
+        >
           <!-- Loading Overlay -->
           @if (iframeLoading()) {
-            <div class="absolute inset-0 flex items-center justify-center bg-white z-10">
+            <div class="absolute inset-0 flex items-center justify-center z-10"
+              [style.background-color]="pageViewMode() ? '#161616' : experimentalViewer() ? '#1e1e1e' : 'white'"
+            >
               <ng-icon name="lucideLoader2" class="text-[32px] text-[#858585] animate-spin" />
             </div>
           }
 
           <!-- Iframe -->
-          <iframe
-            [src]="iframeSrc()"
-            (load)="onIframeLoad()"
-            class="w-full h-full border-0"
-            frameborder="0"
-          ></iframe>
+          <div
+            class="h-full"
+            [class.page-view-content]="pageViewMode()"
+            [class.page-view-content-dark]="pageViewMode() && experimentalViewer()"
+          >
+            <iframe
+              [src]="iframeSrc()"
+              (load)="onIframeLoad()"
+              class="w-full h-full border-0"
+              [style.background-color]="experimentalViewer() ? '#1e1e1e' : 'white'"
+              frameborder="0"
+            ></iframe>
+          </div>
         </div>
       } @else if (selectedDocument()) {
         <!-- Placeholder when loading document URL -->

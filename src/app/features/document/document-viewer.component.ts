@@ -11,7 +11,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, catchError, of } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft,
@@ -34,9 +34,18 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 import { AppChromeService } from '../../core/services/app-chrome.service';
 import { FilingService } from '../../core/services/filing.service';
 import { DocumentService } from '../../core/services/document.service';
+import { StringsService } from '../../core/services/strings.service';
 import { XbrlParserService } from '../../core/services/xbrl-parser.service';
 import { Filing } from '../../core/models/filing.model';
 import { DocumentFile, DocumentMeta, XbrlReport } from '../../core/models/document.model';
+import { DOCUMENT_STYLES, DOCUMENT_POSTMESSAGE_SCRIPT } from './document-viewer-styles';
+
+const VIEWER_SETTINGS_KEY = 'document-viewer-settings';
+
+interface ViewerSettings {
+  experimentalViewer: boolean;
+  pageViewMode: boolean;
+}
 
 /**
  * Selection data received from iframe postMessage
@@ -96,6 +105,7 @@ export class DocumentViewerComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly filingService = inject(FilingService);
   private readonly documentService = inject(DocumentService);
+  private readonly stringsService = inject(StringsService);
   private readonly xbrlParser = inject(XbrlParserService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -121,6 +131,7 @@ export class DocumentViewerComponent {
   iframeSrc = signal<SafeResourceUrl | null>(null);
   iframeHeight = signal<number | string>('100%');
   iframeLoading = signal(false);
+  private currentBlobUrl: string | null = null;
 
   // Selection context (for future AI/context features)
   selectionContext = signal<SelectionData | null>(null);
@@ -133,6 +144,11 @@ export class DocumentViewerComponent {
   xbrlReportHtml = signal<SafeHtml | null>(null);
   xbrlLoading = signal(false);
 
+  // Viewer settings (loaded from Strings API before first document render)
+  experimentalViewer = signal(false);
+  pageViewMode = signal(true);
+  private settingsLoaded = signal(false);
+
   sections = signal({
     info: true,
     documents: true,
@@ -141,10 +157,29 @@ export class DocumentViewerComponent {
 
   constructor() {
     this.appChrome.visible.set(true);
-    this.destroyRef.onDestroy(() => this.appChrome.visible.set(false));
+    this.destroyRef.onDestroy(() => {
+      this.appChrome.visible.set(false);
+      this.revokeBlobUrl();
+    });
 
-    // React to route param changes using effect
+    // Load persisted viewer settings before anything renders
+    this.stringsService
+      .getJson<ViewerSettings>(VIEWER_SETTINGS_KEY)
+      .pipe(
+        catchError(() => of(null)),
+        takeUntilDestroyed(),
+      )
+      .subscribe((settings) => {
+        if (settings) {
+          this.experimentalViewer.set(settings.experimentalViewer);
+          this.pageViewMode.set(settings.pageViewMode);
+        }
+        this.settingsLoaded.set(true);
+      });
+
+    // Wait for settings to load, then react to route param changes
     effect(() => {
+      if (!this.settingsLoaded()) return;
       const accNum = this.accessionNumber();
       if (accNum) {
         this.loadFiling(accNum);
@@ -260,11 +295,9 @@ export class DocumentViewerComponent {
     if (accNum && doc.sequence != null) {
       const seq = doc.sequence.toString();
       const path = `/filings/document/${accNum}/${seq}`;
-      if (replaceUrl) {
-        this.location.replaceState(path);
-      } else {
-        this.location.go(path);
-      }
+      // Always replaceState to avoid polluting browser history —
+      // back button should navigate away from the viewer, not cycle documents.
+      this.location.replaceState(path);
       this.analytics.trackDocumentView(accNum, seq);
     }
 
@@ -390,22 +423,131 @@ export class DocumentViewerComponent {
   }
 
   /**
-   * Load document into iframe using direct API URL
+   * Load document into iframe. Uses direct URL by default, or
+   * fetches HTML and injects styles when experimental viewer is enabled.
    */
   loadDocumentInIframe(doc: DocumentFile) {
     const accessionNumber = this.accessionNumber();
     if (!accessionNumber) return;
 
     this.iframeLoading.set(true);
-    this.iframeHeight.set('100%'); // Reset height until we get postMessage
+    this.iframeHeight.set('100%');
     this.selectionContext.set(null);
 
-    // Build the document URL
     const sequence = doc.sequence?.toString() || '1';
-    const rawUrl = this.documentService.getDocumentUrl(accessionNumber, sequence);
-    
-    // Sanitize URL for iframe src
-    this.iframeSrc.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));
+
+    if (this.experimentalViewer()) {
+      this.documentService
+        .getDocumentText(accessionNumber, sequence)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (html) => {
+            const styledHtml = this.injectDocumentStyles(html, accessionNumber);
+            this.setIframeBlob(styledHtml);
+          },
+          error: (err) => {
+            console.error('Failed to fetch document content, falling back to URL:', err);
+            const rawUrl = this.documentService.getDocumentUrl(accessionNumber, sequence);
+            this.iframeSrc.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));
+          },
+        });
+    } else {
+      this.revokeBlobUrl();
+      const rawUrl = this.documentService.getDocumentUrl(accessionNumber, sequence);
+      this.iframeSrc.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));
+    }
+  }
+
+  /**
+   * Inject base href, reset CSS, theme styles, and postMessage script into raw HTML.
+   */
+  private injectDocumentStyles(html: string, accessionNumber: string): string {
+    // Strip inline font declarations that override our stylesheet.
+    // SEC filings use `font: 10pt Times New Roman, Times, Serif` on nearly every element.
+    html = html.replace(/(<[^>]+\s)style="([^"]*)"/gi, (_match, tag: string, styles: string) => {
+      const cleaned = styles
+        .replace(/\bfont\s*:[^;]*(;|$)/gi, '$1')
+        .replace(/\bfont-family\s*:[^;]*(;|$)/gi, '$1')
+        .replace(/\bfont-size\s*:[^;]*(;|$)/gi, '$1');
+      return `${tag}style="${cleaned}"`;
+    });
+
+    const baseHref = this.documentService.getDocumentUrl(accessionNumber, '');
+    const injection =
+      `<base href="${baseHref}">` +
+      `<style>${DOCUMENT_STYLES}</style>`;
+
+    // Inject into <head> if present
+    const headMatch = html.match(/<head(\s[^>]*)?>/i);
+    if (headMatch) {
+      const idx = headMatch.index! + headMatch[0].length;
+      html = html.slice(0, idx) + injection + html.slice(idx);
+    } else {
+      const htmlMatch = html.match(/<html(\s[^>]*)?>/i);
+      if (htmlMatch) {
+        const idx = htmlMatch.index! + htmlMatch[0].length;
+        html = html.slice(0, idx) + `<head>${injection}</head>` + html.slice(idx);
+      } else {
+        html = `<!DOCTYPE html><html><head>${injection}</head><body>${html}</body></html>`;
+      }
+    }
+
+    // Inject postMessage script before </body> or at the end
+    const bodyCloseIdx = html.search(/<\/body>/i);
+    if (bodyCloseIdx !== -1) {
+      html = html.slice(0, bodyCloseIdx) + DOCUMENT_POSTMESSAGE_SCRIPT + html.slice(bodyCloseIdx);
+    } else {
+      html += DOCUMENT_POSTMESSAGE_SCRIPT;
+    }
+
+    return html;
+  }
+
+  /**
+   * Create a blob URL from HTML content and set it as the iframe source.
+   */
+  private setIframeBlob(html: string) {
+    this.revokeBlobUrl();
+    const blob = new Blob([html], { type: 'text/html' });
+    this.currentBlobUrl = URL.createObjectURL(blob);
+    this.iframeSrc.set(
+      this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl)
+    );
+  }
+
+  /**
+   * Revoke the current blob URL to prevent memory leaks.
+   */
+  private revokeBlobUrl() {
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
+    }
+  }
+
+  toggleExperimentalViewer() {
+    this.experimentalViewer.update((v) => !v);
+    this.saveViewerSettings();
+    const doc = this.selectedDocument();
+    if (doc && !this.xbrlMode()) {
+      this.loadDocumentInIframe(doc);
+    }
+  }
+
+  togglePageViewMode() {
+    this.pageViewMode.update((v) => !v);
+    this.saveViewerSettings();
+  }
+
+  private saveViewerSettings() {
+    const settings: ViewerSettings = {
+      experimentalViewer: this.experimentalViewer(),
+      pageViewMode: this.pageViewMode(),
+    };
+    this.stringsService
+      .setJson(VIEWER_SETTINGS_KEY, settings)
+      .pipe(catchError(() => of(null)), takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   retryLoadDocument() {
