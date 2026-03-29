@@ -66,6 +66,7 @@
                     [displayText]="getQueryDisplayText(entry[1])"
                     [relativeTime]="getRelativeTime(entry[1].lastUsed)"
                     (select)="selectSavedQuery($event)"
+                    (openInNewTab)="openQueryInNewTab($event)"
                     (togglePin)="onTogglePin($event)"
                     (duplicate)="onDuplicateQuery($event)"
                     (rename)="onRenameQuery($event)"
@@ -96,6 +97,7 @@
                       [relativeTime]="getRelativeTime(entry[1].lastUsed)"
                       [isBlueprint]="true"
                       (select)="selectSavedQuery($event)"
+                      (openInNewTab)="openQueryInNewTab($event)"
                       (togglePin)="onTogglePin($event)"
                       (duplicate)="onDuplicateQuery($event)"
                       (rename)="onRenameQuery($event)"
@@ -153,51 +155,79 @@
 
   <!-- Main Content -->
   <main hlmSidebarInset class="flex flex-col h-full bg-[#1e1e1e]">
-    <!-- Header with trigger and query panel -->
+    <!-- Header with trigger, tab bar, and query panel -->
     <header class="flex-none border-b border-[#3c3c3c]">
-      <!-- Title Bar -->
-      <div class="flex items-center justify-between h-9 px-3 bg-[#252526]">
-        <div class="flex items-center gap-2">
-          <button hlmSidebarTrigger class="text-[#858585] hover:text-[#cccccc]">
-            <ng-icon name="lucidePanelLeft" />
-            <span class="sr-only">Toggle Sidebar</span>
-          </button>
-          <img
-            [src]="animatingLogo() ? '/logo-anim.svg?t=' + logoKey() : '/logo.svg'"
-            alt="Nullabroke"
-            class="h-7 w-7"
-          />
-          <span class="text-[13px] text-[#cccccc]">{{ titleText() }}</span>
-        </div>
-        <button
-          (click)="toggleQuery()"
-          class="flex items-center gap-1 px-2 py-0.5 text-[12px] text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded"
-        >
-          {{ queryExpanded() ? 'Collapse' : 'Expand' }}
-          <ng-icon
-            [name]="queryExpanded() ? 'lucideChevronUp' : 'lucideChevronDown'"
-            class="text-[14px]"
-          />
+      <!-- Tab Bar -->
+      <div class="flex items-center h-9 bg-[#252526]">
+        <button hlmSidebarTrigger class="text-[#858585] hover:text-[#cccccc] flex-none px-2">
+          <ng-icon name="lucidePanelLeft" />
+          <span class="sr-only">Toggle Sidebar</span>
         </button>
+        <img
+          [src]="animatingLogo() ? '/logo-anim.svg?t=' + logoKey() : '/logo.svg'"
+          alt="Nullabroke"
+          class="h-7 w-7 flex-none"
+        />
+
+        <!-- Tab Bar Component -->
+        <app-filing-tab-bar
+          class="flex-1 min-w-0 h-full"
+          [tabs]="tabManager.tabs()"
+          [activeIndex]="tabManager.activeIndex()"
+          [showFavoritesTab]="showFavoritesTab()"
+          [queryNames]="tabQueryNames()"
+          (tabSelected)="switchTab($event)"
+          (tabClosed)="closeTab($event)"
+          (newTabClicked)="newTab()"
+        />
+
+        <!-- Collapse/Expand (only for query tabs) -->
+        @if (showQueryEditor()) {
+          <button
+            (click)="toggleQuery()"
+            class="flex items-center gap-1 px-2 py-0.5 text-[12px] text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded flex-none"
+          >
+            {{ queryExpanded() ? 'Collapse' : 'Expand' }}
+            <ng-icon
+              [name]="queryExpanded() ? 'lucideChevronUp' : 'lucideChevronDown'"
+              class="text-[14px]"
+            />
+          </button>
+        }
       </div>
 
-      <!-- Query Panel (collapsible) -->
-      @if (queryExpanded()) {
-        <app-filing-query-editor
-          [queryControl]="queryControl"
-          [isQueryValid]="isQueryValid()"
-          [parseErrors]="parseErrors()"
-          [hasParameters]="hasParameters()"
-          (searchTriggered)="search()"
-        />
-      }
+      @if (showQueryEditor()) {
+        <!-- Query Panel (collapsible) -->
+        @if (queryExpanded()) {
+          <app-filing-query-editor
+            [queryControl]="queryControl"
+            [queryText]="currentQueryText()"
+            [isQueryValid]="isQueryValid()"
+            [parseErrors]="parseErrors()"
+            [hasParameters]="hasParameters()"
+            (searchTriggered)="search()"
+          />
+        }
 
-      <!-- Parameter Inputs + Search Button (ALWAYS visible, even when query editor is collapsed) -->
-      <app-query-parameters
-        [loading]="loading()"
-        [searchDisabled]="loading() || !isQueryValid()"
-        (searchClick)="search()"
-      />
+        <!-- Parameter Inputs + Search Button (ALWAYS visible, even when query editor is collapsed) -->
+        <app-query-parameters
+          [loading]="loading()"
+          [searchDisabled]="loading() || !isQueryValid()"
+          (searchClick)="search()"
+        />
+      } @else {
+        <!-- Favorites toolbar -->
+        <div class="flex items-center h-[36px] bg-[#252526] border-t border-[#3c3c3c] px-3 gap-2">
+          <button
+            (click)="refreshFavorites()"
+            class="flex items-center gap-1.5 px-2 py-1 text-[12px] text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded transition-colors"
+          >
+            <ng-icon name="lucideRotateCcw" class="text-[12px]" />
+            Refresh
+          </button>
+          <span class="text-[11px] text-[#6e6e6e]">{{ results().length }} favorite(s)</span>
+        </div>
+      }
     </header>
 
     <!-- Results Area -->
@@ -208,7 +238,7 @@
         </div>
       }
 
-      @if (results().length === 0 && !loading() && !hasSearched()) {
+      @if (results().length === 0 && !loading() && !hasSearched() && showQueryEditor()) {
         <div class="flex flex-col items-center justify-center flex-1 text-[#6e6e6e]">
           <ng-icon name="lucideSearch" class="text-[48px] mb-3 opacity-30" />
           <p class="text-[13px]">Enter a query to search SEC filings</p>
@@ -221,12 +251,18 @@
 
       @if (results().length === 0 && !loading() && hasSearched()) {
         <div class="flex flex-col items-center justify-center flex-1 text-[#6e6e6e]">
-          <p class="text-[13px]">No filings found</p>
+          <p class="text-[13px]">{{ showQueryEditor() ? 'No filings found' : 'No favorites yet' }}</p>
         </div>
       }
 
       @if (results().length > 0 && gridStateLoaded()) {
-        <app-filing-results-grid [rowData]="results()" [initialColumnState]="gridColumnState()" />
+        <app-filing-results-grid
+          [rowData]="results()"
+          [initialColumnState]="gridColumnState()"
+          [favoriteIds]="favoritesService.favoriteIdSet()"
+          (addToFavorites)="onAddToFavorites($event)"
+          (removeFromFavorites)="onRemoveFromFavorites($event)"
+        />
       }
     </main>
 

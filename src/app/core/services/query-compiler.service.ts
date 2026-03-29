@@ -2,9 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import {
   ParsedQuery,
   QueryParameter,
-  RenderComponentType,
 } from '../models/query-parameter.model';
 import { QueryParserService } from './query-parser.service';
+import { FavoritesService } from './favorites.service';
 
 /**
  * Result of compiling a query.
@@ -29,6 +29,7 @@ export interface CompileResult {
 })
 export class QueryCompilerService {
   private readonly parserService = inject(QueryParserService);
+  private readonly favoritesService = inject(FavoritesService);
 
   /**
    * Compile a parameterized query into an executable query string.
@@ -57,6 +58,16 @@ export class QueryCompilerService {
       };
     }
 
+    // Check if Favorites parameters are used and service is loaded
+    const hasFavorites = parsed.parameters.some(p => p.componentType === 'Favorites');
+    if (hasFavorites && !this.favoritesService.loaded()) {
+      return {
+        compiledQuery: query,
+        success: false,
+        errors: ['Favorites are still loading. Please wait...'],
+      };
+    }
+
     const errors: string[] = [];
     let compiledQuery = query;
     
@@ -79,7 +90,7 @@ export class QueryCompilerService {
       }
 
       // Compile the value based on component type
-      const compiledValue = this.compileValue(param.componentType, effectiveValue);
+      const compiledValue = this.compileValue(param, effectiveValue);
       
       // Replace in query
       compiledQuery = 
@@ -99,26 +110,86 @@ export class QueryCompilerService {
   }
 
   /**
-   * Compile a value based on its component type.
+   * Compile a value based on its component type, then apply any modifier.
    */
-  private compileValue(componentType: RenderComponentType, value: string | number | string[]): string {
-    switch (componentType) {
-      case 'StringInput':
-        return this.compileStringValue(value as string);
-      
+  private compileValue(param: QueryParameter, value: string | number | string[]): string {
+    // Get the raw items for this type
+    let items: string[];
+
+    switch (param.componentType) {
+      case 'Favorites':
+        items = this.favoritesService.favoriteIds().map(String);
+        break;
+      case 'Tags':
+        items = this.normalizeToArray(value);
+        break;
       case 'NumberInput':
-        return this.compileNumberValue(value as number | string);
-      
+        items = [this.compileNumberValue(value as number | string)];
+        break;
+      case 'StringInput':
       case 'FormTypes':
-        return this.compileStringValue(value as string);
-      
+      default:
+        items = [String(value ?? '')];
+        break;
+    }
+
+    // If there's a modifier, use it to format the output
+    if (param.modifier) {
+      return this.applyModifier(items, param.modifier, param.componentType);
+    }
+
+    // No modifier — use the original type-specific formatting
+    switch (param.componentType) {
+      case 'StringInput':
+      case 'FormTypes':
+        return this.compileStringValue(items[0]);
+      case 'NumberInput':
+        return items[0];
       case 'Tags':
         return this.compileTagsValue(value as string[] | string);
-      
+      case 'Favorites':
+        return items.join(',');
       default:
-        // Fallback to string compilation
-        return this.compileStringValue(String(value));
+        return this.compileStringValue(items[0]);
     }
+  }
+
+  /**
+   * Apply a modifier to format an array of items.
+   * Numbers stay unquoted, strings get single-quoted.
+   */
+  private applyModifier(items: string[], modifier: string, componentType: string): string {
+    const isNumeric = componentType === 'Favorites' || componentType === 'NumberInput';
+
+    const formatItem = (item: string) => {
+      if (isNumeric) return item;
+      const escaped = item.replace(/'/g, "''");
+      return `'${escaped}'`;
+    };
+
+    switch (modifier) {
+      case 'csv':
+        return items.map(formatItem).join(',');
+      case 'array':
+        return `(${items.map(formatItem).join(',')})`;
+      case 'pgarray':
+        return `array[${items.map(formatItem).join(',')}]`;
+      case 'first':
+        return items.length > 0 ? formatItem(items[0]) : (isNumeric ? '0' : "''");
+      case 'last':
+        return items.length > 0 ? formatItem(items[items.length - 1]) : (isNumeric ? '0' : "''");
+      default:
+        return items.map(formatItem).join(',');
+    }
+  }
+
+  /**
+   * Normalize a value to a string array (for Tags and similar list types).
+   */
+  private normalizeToArray(value: string | number | string[]): string[] {
+    if (Array.isArray(value)) return value.map(String);
+    if (typeof value === 'string') return value.split(',').map(s => s.trim()).filter(s => s);
+    return [String(value)];
   }
 
   /**
@@ -175,6 +246,8 @@ export class QueryCompilerService {
       case 'NumberInput':
         return 0;
       case 'Tags':
+        return [];
+      case 'Favorites':
         return [];
       case 'StringInput':
       case 'FormTypes':

@@ -38,10 +38,11 @@ import { TagsService } from '../../../core/services/tags.service';
             {{ tag }}
             <button
               type="button"
-              (click)="removeTag(tag)"
-              class="hover:bg-[#1177bb] rounded-sm"
+              (click)="$event.stopPropagation(); removeTag(tag)"
+              class="flex items-center justify-center w-3.5 h-3.5 hover:bg-[#1177bb] rounded-sm"
+              title="Remove {{ tag }}"
             >
-              <ng-icon name="lucideX" size="xs" />
+              <ng-icon name="lucideX" class="text-[8px]" />
             </button>
           </span>
         }

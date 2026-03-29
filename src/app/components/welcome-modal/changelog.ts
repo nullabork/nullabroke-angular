@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.8.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -6,6 +6,54 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.8.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'CodeMirror 6 query editor with PgSQL syntax highlighting and dark theme',
+          'Autocomplete dropdown with grouped Filing Fields (from API) and SQL Keywords',
+          'Dynamic field autocomplete: type suggestions inside {Label:Type} syntax, modifier suggestions after |',
+          'Favorites field type with |modifier syntax: {favs:Favorites|array} injects favorite IDs into queries',
+          'Modifiers: csv, array, pgarray, first, last — format values for different SQL patterns',
+          'Modifiers now work on Tags and Favorites (e.g., {Tags:Tags|pgarray} → array[\'a\',\'b\'])',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Query parameter {Label:Type:Default} blocks highlighted in teal in the code editor',
+          'Styled viewer strips inline font declarations from SEC HTML for consistent app typography and larger text',
+          'Help page updated with Favorites field type and modifiers reference',
+          'Tag chips in dynamic parameters now show visible X buttons for individual removal',
+          'Preview button in query toolbar: hold to see compiled query with values replaced',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.7.0',
+    sections: [
+      {
+        title: 'New Features',
+        items: [
+          'Tabbed query interface: keep multiple queries open simultaneously with VS Code-style tabs',
+          'Open in New Tab option in query three-dot menu',
+          'Favorites system: right-click any filing row to add/remove favorites',
+          'Favorites tab shows bookmarked filings with cached results and background refresh',
+          'Right-click context menu on table rows: Copy Cell, Copy Row, Add/Remove Favorites',
+        ],
+      },
+      {
+        title: 'Improvements',
+        items: [
+          'Tabs persist across page reloads via Strings API; queries lazy-load on first tab switch',
+          'In-flight queries cancelled on tab switch to prevent results landing in wrong tab',
+        ],
+      },
+    ],
+  },
   {
     version: '0.6.0',
     sections: [
@@ -36,7 +84,6 @@ export const CHANGELOG: ChangelogEntry[] = [
           'Fixed document viewer page mode content collapsing to a short height instead of filling the viewport',
           'Fixed white bars appearing on sides of document in experimental viewer with page view mode',
           'Moved viewer settings (Styled/Page toggles) from dropdown menu to inline toggle buttons in the top bar',
-          'Styled viewer strips inline font declarations from SEC HTML for consistent app typography and larger text',
         ],
       },
     ],

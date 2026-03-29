@@ -27,6 +27,15 @@ export class QueryParserService {
     'NumberInput',
     'FormTypes',
     'Tags',
+    'Favorites',
+  ]);
+
+  private readonly validModifiers: Set<string> = new Set([
+    'csv',
+    'array',
+    'pgarray',
+    'first',
+    'last',
   ]);
 
   // Regex to match parameter syntax: {Label:RenderComponent:DefaultValue}
@@ -113,11 +122,22 @@ export class QueryParserService {
       };
     }
 
-    // Extract component type (optional, defaults to StringInput)
+    // Extract component type and modifier.
+    // Handle {label:Type|modifier} where pipe is part of the type segment (no default value).
     let componentType: RenderComponentType = 'StringInput';
+    let modifier: string | undefined;
+
     if (parts.length > 1 && parts[1]?.trim()) {
-      const typeStr = parts[1].trim();
-      if (!this.validComponentTypes.has(typeStr)) {
+      let typeStr = parts[1].trim();
+
+      // Check for |modifier attached to the type (no default value case)
+      const pipeIdx = typeStr.indexOf('|');
+      if (pipeIdx >= 0) {
+        modifier = typeStr.substring(pipeIdx + 1).trim();
+        typeStr = typeStr.substring(0, pipeIdx).trim();
+      }
+
+      if (typeStr && !this.validComponentTypes.has(typeStr)) {
         return {
           error: {
             message: `Invalid component type: ${typeStr}. Valid types are: ${[...this.validComponentTypes].join(', ')}`,
@@ -126,14 +146,36 @@ export class QueryParserService {
           },
         };
       }
-      componentType = typeStr as RenderComponentType;
+      if (typeStr) {
+        componentType = typeStr as RenderComponentType;
+      }
     }
 
     // Extract default value (optional)
     // Join remaining parts back together in case default value contained colons
-    const defaultValue = parts.length > 2 
-      ? parts.slice(2).join(':').trim() 
+    let defaultValue = parts.length > 2
+      ? parts.slice(2).join(':').trim()
       : '';
+
+    // Extract modifier from |modifier in the default value (e.g., {label:Type:default|csv})
+    if (!modifier) {
+      const pipeIndex = defaultValue.lastIndexOf('|');
+      if (pipeIndex >= 0) {
+        modifier = defaultValue.substring(pipeIndex + 1).trim();
+        defaultValue = defaultValue.substring(0, pipeIndex).trim();
+      }
+    }
+
+    // Validate modifier if present
+    if (modifier && !this.validModifiers.has(modifier)) {
+      return {
+        error: {
+          message: `Invalid modifier: ${modifier}. Valid modifiers are: ${[...this.validModifiers].join(', ')}`,
+          startIndex,
+          endIndex,
+        },
+      };
+    }
 
     return {
       parameter: {
@@ -144,6 +186,7 @@ export class QueryParserService {
         rawMatch,
         startIndex,
         endIndex,
+        modifier,
       },
     };
   }

@@ -16,6 +16,7 @@ import { StringInputComponent } from './inputs/string-input.component';
 import { NumberInputComponent } from './inputs/number-input.component';
 import { FormTypesInputComponent } from './inputs/form-types-input.component';
 import { TagsInputComponent } from './inputs/tags-input.component';
+import { FavoritesInputComponent } from './inputs/favorites-input.component';
 
 /**
  * Component for displaying inline parameter inputs for parameterized queries.
@@ -32,6 +33,7 @@ import { TagsInputComponent } from './inputs/tags-input.component';
     NumberInputComponent,
     FormTypesInputComponent,
     TagsInputComponent,
+    FavoritesInputComponent,
   ],
   providers: [
     provideIcons({ lucideRotateCcw, lucideSearch, lucideLoader2 }),
@@ -74,6 +76,14 @@ import { TagsInputComponent } from './inputs/tags-input.component';
                 <app-tags-input
                   [value]="getValueAsStringArray(param.index)"
                   [defaultValue]="param.defaultValue"
+                  (valueChange)="onValueChange(param.index, $event)"
+                />
+              }
+              @case ('Favorites') {
+                <app-favorites-input
+                  [value]="getValueAsString(param.index)"
+                  [defaultValue]="param.defaultValue"
+                  [modifier]="param.modifier ?? ''"
                   (valueChange)="onValueChange(param.index, $event)"
                 />
               }

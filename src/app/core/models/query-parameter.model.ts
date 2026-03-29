@@ -3,11 +3,15 @@
  * Each type defines how the parameter is rendered and how its value
  * is compiled into the final query string.
  */
-export type RenderComponentType = 
+export type RenderComponentType =
   | 'StringInput'    // Free text input, wraps in single quotes
   | 'NumberInput'    // Numeric input, no quotes
   | 'FormTypes'      // Dropdown for SEC form types
-  | 'Tags';          // Multi-select for tags
+  | 'Tags'           // Multi-select for tags
+  | 'Favorites';     // Injects favorite IDs (read-only, uses modifiers)
+
+/** Modifiers that control how a Favorites value is formatted in the compiled query */
+export type FavoritesModifier = 'csv' | 'array' | 'first' | 'last';
 
 /**
  * Represents a parsed query parameter from the special syntax.
@@ -34,6 +38,9 @@ export interface QueryParameter {
   
   /** End position in the original query string */
   endIndex: number;
+
+  /** Optional modifier (e.g., csv, array, first, last) parsed from |modifier syntax */
+  modifier?: string;
 }
 
 /**
