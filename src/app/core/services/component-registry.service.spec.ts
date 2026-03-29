@@ -37,7 +37,8 @@ describe('ComponentRegistryService', () => {
       expect(types).toContain('NumberInput');
       expect(types).toContain('FormTypes');
       expect(types).toContain('Tags');
-      expect(types).toHaveLength(4);
+      expect(types).toContain('Favorites');
+      expect(types).toHaveLength(5);
     });
   });
 

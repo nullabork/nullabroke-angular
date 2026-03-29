@@ -121,6 +121,7 @@ export class FilingSearchComponent {
   // Expose saved queries service state
   savedQueries = this.savedQueriesService.savedQueries;
   currentGuid = this.savedQueriesService.currentGuid;
+  currentQueryText = this.savedQueriesService.currentQuery;
   hasDeletedBlueprints = this.savedQueriesService.hasDeletedBlueprints;
 
   /** User-created queries (no blueprintId) - pinned first, then by lastUsed desc */

@@ -64,6 +64,13 @@ const DEFAULT_COMPONENT_CONFIGS: Record<RenderComponentType, RenderComponentConf
     },
     getDefaultValue: () => [] as string[],
   },
+
+  Favorites: {
+    type: 'Favorites',
+    displayName: 'Favorites',
+    compile: (value) => String(value ?? ''),
+    getDefaultValue: () => [] as string[],
+  },
 };
 
 /**

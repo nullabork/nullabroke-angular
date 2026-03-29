@@ -212,6 +212,7 @@ export class SavedQueriesService {
       case 'NumberInput':
         return 0;
       case 'Tags':
+      case 'Favorites':
         return [];
       default:
         return '';

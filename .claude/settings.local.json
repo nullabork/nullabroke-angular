@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm test)",
       "Bash(export PATH=\"/c/Users/aaron/AppData/Local/mise/shims:$PATH\")",
-      "WebFetch(domain:ehire-cms.webflow.io)"
+      "WebFetch(domain:ehire-cms.webflow.io)",
+      "Bash(curl -s --max-time 15 \"http://115.70.110.212:81/swagger/v1/swagger.json\")",
+      "Bash(curl:*)"
     ]
   }
 }

@@ -201,6 +201,7 @@
         @if (queryExpanded()) {
           <app-filing-query-editor
             [queryControl]="queryControl"
+            [queryText]="currentQueryText()"
             [isQueryValid]="isQueryValid()"
             [parseErrors]="parseErrors()"
             [hasParameters]="hasParameters()"

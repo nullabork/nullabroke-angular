@@ -246,6 +246,58 @@ import {
                     <div class="text-[12px] font-mono mt-1 text-[#6e6e6e]">Example: {{ '{' }}Tags:Tags:Presentation{{ '}' }} → <span class="text-[#ce9178]">'Presentation'</span></div>
                   </div>
                 </div>
+                <div class="flex gap-3">
+                  <div class="flex-none w-6 h-6 flex items-center justify-center text-[#4ec9b0]">
+                    <ng-icon name="lucideList" class="text-[16px]" />
+                  </div>
+                  <div>
+                    <div class="text-white font-medium">Favorites</div>
+                    <div class="text-[#858585] text-[12px]">Injects your favorited filing IDs into the query (read-only). Use with a modifier to control format.</div>
+                    <div class="text-[12px] font-mono mt-1 text-[#6e6e6e]">Example: {{ '{' }}favs:Favorites|array{{ '}' }} → <span class="text-[#ce9178]">(123,456,789)</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-[#252526] border border-[#3c3c3c] rounded p-4">
+              <h3 class="text-[14px] text-white font-medium mb-2">Modifiers</h3>
+              <p class="text-[#858585] text-[12px] mb-3">Append <code class="text-[#ce9178]">|modifier</code> to control how values are formatted in the compiled query. Works with Tags and Favorites.</p>
+              <div class="space-y-3 font-mono text-[12px]">
+                <div>
+                  <div class="text-[#858585] text-[11px] mb-1">Syntax</div>
+                  <code class="text-[#ce9178]">{{ '{' }}Label:Type|modifier{{ '}' }}</code> or <code class="text-[#ce9178]">{{ '{' }}Label:Type:Default|modifier{{ '}' }}</code>
+                </div>
+              </div>
+              <table class="w-full text-[12px] mt-3">
+                <tbody>
+                  <tr class="border-b border-[#3c3c3c]">
+                    <td class="py-1.5 font-mono text-[#ce9178] w-28">csv</td>
+                    <td class="py-1.5 text-[#858585]">Comma-separated: <code class="text-[#4ec9b0]">1,2,3</code> or <code class="text-[#4ec9b0]">'a','b'</code></td>
+                  </tr>
+                  <tr class="border-b border-[#3c3c3c]">
+                    <td class="py-1.5 font-mono text-[#ce9178]">array</td>
+                    <td class="py-1.5 text-[#858585]">Parenthesized list for <code class="text-[#569cd6]">IN</code>: <code class="text-[#4ec9b0]">(1,2,3)</code></td>
+                  </tr>
+                  <tr class="border-b border-[#3c3c3c]">
+                    <td class="py-1.5 font-mono text-[#ce9178]">pgarray</td>
+                    <td class="py-1.5 text-[#858585]">PostgreSQL array literal: <code class="text-[#4ec9b0]">array['a','b']</code></td>
+                  </tr>
+                  <tr class="border-b border-[#3c3c3c]">
+                    <td class="py-1.5 font-mono text-[#ce9178]">first</td>
+                    <td class="py-1.5 text-[#858585]">First item only</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 font-mono text-[#ce9178]">last</td>
+                    <td class="py-1.5 text-[#858585]">Last item only</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="font-mono text-[12px] bg-[#1e1e1e] rounded p-3 leading-relaxed mt-3">
+                <span class="text-[#6e6e6e]">-- Exclude favorites from results</span><br>
+                <span class="text-[#4ec9b0]">id</span> <span class="text-[#569cd6]">not in</span> <span class="text-[#dcdcaa]">{{ '{' }}favs:Favorites|array{{ '}' }}</span><br>
+                <br>
+                <span class="text-[#6e6e6e]">-- Tags as PG array for && overlap</span><br>
+                <span class="text-[#dcdcaa]">{{ '{' }}Tags:Tags|pgarray{{ '}' }}</span> <span class="text-[#d4d4d4]">&&</span> <span class="text-[#4ec9b0]">tags</span>
               </div>
             </div>
 

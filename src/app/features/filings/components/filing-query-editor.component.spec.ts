@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl } from '@angular/forms';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FilingQueryEditorComponent } from './filing-query-editor.component';
 import { describe, it, expect, vi } from 'vitest';
 
@@ -16,11 +17,12 @@ describe('FilingQueryEditorComponent', () => {
     const queryControl = new FormControl<string>(opts.query ?? '', { nonNullable: true });
 
     await TestBed.configureTestingModule({
-      imports: [FilingQueryEditorComponent],
+      imports: [FilingQueryEditorComponent, HttpClientTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FilingQueryEditorComponent);
     fixture.componentRef.setInput('queryControl', queryControl);
+    fixture.componentRef.setInput('queryText', opts.query ?? '');
     fixture.componentRef.setInput('isQueryValid', opts.isValid ?? true);
     fixture.componentRef.setInput('parseErrors', opts.parseErrors ?? []);
     fixture.componentRef.setInput('hasParameters', opts.hasParameters ?? false);
@@ -38,10 +40,10 @@ describe('FilingQueryEditorComponent', () => {
     expect(fixture.nativeElement.classList.contains('filing-query-editor')).toBe(true);
   });
 
-  it('should render textarea with form control value', async () => {
+  it('should render the code editor element', async () => {
     await setupTest({ query: 'test query' });
-    const textarea = fixture.nativeElement.querySelector('textarea');
-    expect(textarea.value).toBe('test query');
+    const editor = fixture.nativeElement.querySelector('app-code-editor');
+    expect(editor).toBeTruthy();
   });
 
   it('should show parse errors when present', async () => {
@@ -67,14 +69,12 @@ describe('FilingQueryEditorComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Query has parameters');
   });
 
-  it('should emit searchTriggered on Ctrl+Enter', async () => {
+  it('should emit searchTriggered when onShortcut is called with ctrl-enter', async () => {
     await setupTest();
     const spy = vi.fn();
     component.searchTriggered.subscribe(spy);
 
-    const textarea = fixture.nativeElement.querySelector('textarea');
-    textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true }));
-    fixture.detectChanges();
+    component.onShortcut('ctrl-enter');
 
     expect(spy).toHaveBeenCalled();
   });
